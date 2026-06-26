@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck:worker": "tsc -p tsconfig.worker.json",
-    "seed": "tsx --env-file=.env.local supabase/seed.ts"
+    "seed": "tsx --env-file=.env.local supabase/seed.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@serwist/next": "^9.5.11",
@@ -29,6 +30,7 @@
     "supabase": "^2.108.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.9"
   }
 }
