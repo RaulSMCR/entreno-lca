@@ -1,0 +1,733 @@
+{
+  "program": {
+    "name": "Programa Ondulante Recomposición Post-LCA (Meses 1-3)",
+    "description": "Periodización ondulante de tren superior y grip durante recuperación de LCA, con cross-education sobre pierna sana, core antirrotacional y trabajo orientado a grappling/BJJ.",
+    "rpe_model": "RIR = 10 - RPE; e1RM por Epley con reps-a-fallo estimadas."
+  },
+  "exercises": [
+    {
+      "name": "Dominadas Lastradas (Pull-up)",
+      "block": "principal",
+      "category": "pull",
+      "unit": "kg",
+      "rm_base_kg": 90,
+      "biomech_note": "Mantener tensión escapular; lastre progresivo"
+    },
+    {
+      "name": "Remo Banco Inclinado Mancuernas",
+      "block": "principal",
+      "category": "pull",
+      "unit": "kg",
+      "rm_base_kg": 40,
+      "biomech_note": "Pecho apoyado, sin impulso de cadera"
+    },
+    {
+      "name": "Remo Articulado Unilateral",
+      "block": "principal",
+      "category": "pull",
+      "unit": "kg",
+      "rm_base_kg": 50,
+      "biomech_note": "Rango completo, una mano de apoyo"
+    },
+    {
+      "name": "Press de Banca Plano (Barra)",
+      "block": "principal",
+      "category": "push",
+      "unit": "kg",
+      "rm_base_kg": 70,
+      "biomech_note": "Retracción escapular, pies firmes"
+    },
+    {
+      "name": "Press Militar Sentado Manc.",
+      "block": "principal",
+      "category": "push",
+      "unit": "kg",
+      "rm_base_kg": 24,
+      "biomech_note": "Sentado para anular carga axial de pierna"
+    },
+    {
+      "name": "Fondos en Paralelas",
+      "block": "principal",
+      "category": "push",
+      "unit": "kg",
+      "rm_base_kg": 80,
+      "biomech_note": "Lastre incluido en el RM base"
+    },
+    {
+      "name": "Slam Ball Sentado",
+      "block": "principal",
+      "category": "conditioning",
+      "unit": "kg",
+      "rm_base_kg": 15,
+      "biomech_note": "Explosivo, máxima velocidad de lanzamiento"
+    },
+    {
+      "name": "Remo Gironda con Cuerda/Faja",
+      "block": "principal",
+      "category": "pull",
+      "unit": "kg",
+      "rm_base_kg": 60,
+      "biomech_note": "Tracción hacia abdomen, codos pegados"
+    },
+    {
+      "name": "Jalón al Pecho Supino",
+      "block": "principal",
+      "category": "pull",
+      "unit": "kg",
+      "rm_base_kg": 70,
+      "biomech_note": "Agarre supino, foco en dorsal"
+    },
+    {
+      "name": "Remo Gironda Pesado (Pull F)",
+      "block": "principal",
+      "category": "pull",
+      "unit": "kg",
+      "rm_base_kg": 80,
+      "biomech_note": "Variante pesada del remo gironda"
+    },
+    {
+      "name": "Jalón al Pecho Prono Pesado",
+      "block": "principal",
+      "category": "pull",
+      "unit": "kg",
+      "rm_base_kg": 85,
+      "biomech_note": "Agarre prono ancho, pesado"
+    },
+    {
+      "name": "Press de Banca Inclinado (Fuerza)",
+      "block": "principal",
+      "category": "push",
+      "unit": "kg",
+      "rm_base_kg": 80,
+      "biomech_note": "Inclinado, foco pectoral superior"
+    },
+    {
+      "name": "Press de Hombro Hammer",
+      "block": "principal",
+      "category": "push",
+      "unit": "kg",
+      "rm_base_kg": 40,
+      "biomech_note": "Máquina Hammer, trayectoria guiada"
+    },
+    {
+      "name": "SkiErg o Bicicleta de Brazos",
+      "block": "principal",
+      "category": "conditioning",
+      "unit": "intervals",
+      "rm_base_kg": null,
+      "biomech_note": "HIIT 30\"/90\", solo tren superior"
+    },
+    {
+      "name": "Suspensiones Faja BJJ en Barra",
+      "block": "secundario",
+      "category": "grip",
+      "unit": "seconds",
+      "rm_base_kg": null,
+      "biomech_note": "Mantener >30s por serie"
+    },
+    {
+      "name": "Plate Pinch (Pinza de Dedos)",
+      "block": "secundario",
+      "category": "grip",
+      "unit": "kg",
+      "rm_base_kg": null,
+      "biomech_note": "Fuerza de falanges; discos 10-15kg"
+    },
+    {
+      "name": "Pallof Press Sentado (Polea)",
+      "block": "secundario",
+      "category": "core",
+      "unit": "reps",
+      "rm_base_kg": null,
+      "biomech_note": "Core antirrotacional estricto"
+    },
+    {
+      "name": "Plancha Frontal Pierna Sana",
+      "block": "secundario",
+      "category": "core",
+      "unit": "seconds",
+      "rm_base_kg": null,
+      "biomech_note": "Apoyo sobre rodillas o un solo pie"
+    },
+    {
+      "name": "Prensa Unilateral Pierna SANA",
+      "block": "secundario",
+      "category": "legs",
+      "unit": "kg",
+      "rm_base_kg": null,
+      "biomech_note": "Efecto cross-education neural"
+    },
+    {
+      "name": "Extensión Cuádriceps (SANA)",
+      "block": "secundario",
+      "category": "legs",
+      "unit": "kg",
+      "rm_base_kg": null,
+      "biomech_note": "Mantener masa magra contralateral"
+    },
+    {
+      "name": "Rotaciones Torácicas Cuadrupedia",
+      "block": "secundario",
+      "category": "mobility",
+      "unit": "reps",
+      "rm_base_kg": null,
+      "biomech_note": "Abrir línea del hombro para grappling"
+    },
+    {
+      "name": "Spine Openers (Libro)",
+      "block": "secundario",
+      "category": "mobility",
+      "unit": "reps",
+      "rm_base_kg": null,
+      "biomech_note": "Flexibilidad de columna torácica"
+    },
+    {
+      "name": "Remo Alto Polea con Fat Grips",
+      "block": "secundario",
+      "category": "pull",
+      "unit": "kg",
+      "rm_base_kg": null,
+      "biomech_note": "Deltoides posterior y grip dinámico"
+    },
+    {
+      "name": "Curl Antebrazo con Fat Grips",
+      "block": "secundario",
+      "category": "grip",
+      "unit": "kg",
+      "rm_base_kg": null,
+      "biomech_note": "Flexores de muñeca (control de mangas)"
+    },
+    {
+      "name": "Suitcase Carry (Farmer Unilateral)",
+      "block": "secundario",
+      "category": "grip",
+      "unit": "meters",
+      "rm_base_kg": null,
+      "biomech_note": "Estático o con muletas controlado"
+    },
+    {
+      "name": "Woodchoppers Sentado (Polea)",
+      "block": "secundario",
+      "category": "core",
+      "unit": "reps",
+      "rm_base_kg": null,
+      "biomech_note": "Transferencia de fuerza rotacional"
+    },
+    {
+      "name": "Press de Banca Plano (Volumen)",
+      "block": "secundario",
+      "category": "push",
+      "unit": "kg",
+      "rm_base_kg": null,
+      "biomech_note": "Pies arriba del banco para anular leg drive"
+    },
+    {
+      "name": "Press Militar Mancuerna",
+      "block": "secundario",
+      "category": "push",
+      "unit": "kg",
+      "rm_base_kg": null,
+      "biomech_note": "Estabilidad escapular sin carga de piernas"
+    },
+    {
+      "name": "Dominadas Supinas (Volumen)",
+      "block": "secundario",
+      "category": "pull",
+      "unit": "kg",
+      "rm_base_kg": null,
+      "biomech_note": "Hipertrofia de dorsales y flexores de codo"
+    },
+    {
+      "name": "Remo de Pecho Apoyado Banco",
+      "block": "secundario",
+      "category": "pull",
+      "unit": "kg",
+      "rm_base_kg": null,
+      "biomech_note": "Aislamiento dorsal puro sin carga axial"
+    },
+    {
+      "name": "Estiramiento Flexores de Cadera (Sana)",
+      "block": "secundario",
+      "category": "mobility",
+      "unit": "seconds",
+      "rm_base_kg": null,
+      "biomech_note": "Mantener rango de guardia abierto"
+    },
+    {
+      "name": "Movilidad Cápsula Posterior Hombro",
+      "block": "secundario",
+      "category": "mobility",
+      "unit": "reps",
+      "rm_base_kg": null,
+      "biomech_note": "Prevención llaves de brazo (Omoplata/Kimura)"
+    },
+    {
+      "name": "Prensa Unilateral Pierna SANA (Fuerza)",
+      "block": "secundario",
+      "category": "legs",
+      "unit": "kg",
+      "rm_base_kg": null,
+      "biomech_note": "Mantener estímulo neural cruzado alto"
+    }
+  ],
+  "day_templates": [
+    {
+      "code": "A1",
+      "title": "Día A1: Tracción Fuerza & Grip Isométrico",
+      "focus": "Pull Fuerza / Push Volumen",
+      "slots": [
+        {
+          "order": 1,
+          "block": "principal",
+          "exercise_name": "Dominadas Lastradas (Pull-up)",
+          "scheme": {
+            "sets": 4,
+            "reps": 5,
+            "pct_max": 85,
+            "rpe_target": 9.0,
+            "raw": "4*5*85%"
+          }
+        },
+        {
+          "order": 2,
+          "block": "principal",
+          "exercise_name": "Remo Banco Inclinado Mancuernas",
+          "scheme": {
+            "sets": 4,
+            "reps": 5,
+            "pct_max": 85,
+            "rpe_target": 9.0,
+            "raw": "4*5*85%"
+          }
+        },
+        {
+          "order": 3,
+          "block": "principal",
+          "exercise_name": "Remo Articulado Unilateral",
+          "scheme": {
+            "sets": 3,
+            "reps": 6,
+            "pct_max": 80,
+            "rpe_target": 8.5,
+            "raw": "3*6*80%"
+          }
+        },
+        {
+          "order": 4,
+          "block": "secundario",
+          "exercise_name": "Suspensiones Faja BJJ en Barra",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "Fallo Técnico",
+            "intensity": "Isométrico >30s",
+            "rpe_target": null
+          }
+        },
+        {
+          "order": 5,
+          "block": "secundario",
+          "exercise_name": "Plate Pinch (Pinza de Dedos)",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "Fallo",
+            "intensity": "Discos 10-15kg",
+            "rpe_target": null
+          }
+        },
+        {
+          "order": 6,
+          "block": "secundario",
+          "exercise_name": "Pallof Press Sentado (Polea)",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "15 por lado",
+            "intensity": "Moderado",
+            "rpe_target": null
+          }
+        },
+        {
+          "order": 7,
+          "block": "secundario",
+          "exercise_name": "Plancha Frontal Pierna Sana",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "45 segundos",
+            "intensity": "Peso corporal",
+            "rpe_target": null
+          }
+        }
+      ]
+    },
+    {
+      "code": "B1",
+      "title": "Día B1: Empuje Volumen & Transferencia Cruzada",
+      "focus": "Push Volumen / Pull Estabilizador",
+      "slots": [
+        {
+          "order": 1,
+          "block": "principal",
+          "exercise_name": "Press de Banca Plano (Barra)",
+          "scheme": {
+            "sets": 4,
+            "reps": 10,
+            "pct_max": 70,
+            "rpe_target": 8.0,
+            "raw": "4*10*70%"
+          }
+        },
+        {
+          "order": 2,
+          "block": "principal",
+          "exercise_name": "Press Militar Sentado Manc.",
+          "scheme": {
+            "sets": 3,
+            "reps": 10,
+            "pct_max": 70,
+            "rpe_target": 8.0,
+            "raw": "3*10*70%"
+          }
+        },
+        {
+          "order": 3,
+          "block": "principal",
+          "exercise_name": "Fondos en Paralelas",
+          "scheme": {
+            "sets": 3,
+            "reps": 12,
+            "pct_max": 65,
+            "rpe_target": 7.5,
+            "raw": "3*12*65%"
+          }
+        },
+        {
+          "order": 4,
+          "block": "secundario",
+          "exercise_name": "Prensa Unilateral Pierna SANA",
+          "secondary": {
+            "series": 4,
+            "reps_or_time": "8",
+            "intensity": "Pesado",
+            "rpe_target": 9.0
+          }
+        },
+        {
+          "order": 5,
+          "block": "secundario",
+          "exercise_name": "Extensión Cuádriceps (SANA)",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "10",
+            "intensity": "Controlado",
+            "rpe_target": null
+          }
+        },
+        {
+          "order": 6,
+          "block": "secundario",
+          "exercise_name": "Rotaciones Torácicas Cuadrupedia",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "12 por lado",
+            "intensity": "Movilidad",
+            "rpe_target": null
+          }
+        },
+        {
+          "order": 7,
+          "block": "secundario",
+          "exercise_name": "Spine Openers (Libro)",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "10 por lado",
+            "intensity": "Movilidad",
+            "rpe_target": null
+          }
+        }
+      ]
+    },
+    {
+      "code": "C1",
+      "title": "Día C1: Potencia Upper Body, Grip Dinámico & Core",
+      "focus": "Potencia / Movilidad",
+      "slots": [
+        {
+          "order": 1,
+          "block": "principal",
+          "exercise_name": "Slam Ball Sentado",
+          "scheme": {
+            "sets": null,
+            "reps": null,
+            "pct_max": null,
+            "rpe_target": null,
+            "raw": "4*8*EXPL",
+            "note": "Explosivo, intención máxima"
+          }
+        },
+        {
+          "order": 2,
+          "block": "principal",
+          "exercise_name": "Remo Gironda con Cuerda/Faja",
+          "scheme": {
+            "sets": 4,
+            "reps": 10,
+            "pct_max": 70,
+            "rpe_target": 8.0,
+            "raw": "4*10*70%"
+          }
+        },
+        {
+          "order": 3,
+          "block": "principal",
+          "exercise_name": "Jalón al Pecho Supino",
+          "scheme": {
+            "sets": 3,
+            "reps": 10,
+            "pct_max": 70,
+            "rpe_target": 8.0,
+            "raw": "3*10*70%"
+          }
+        },
+        {
+          "order": 4,
+          "block": "secundario",
+          "exercise_name": "Remo Alto Polea con Fat Grips",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "12",
+            "intensity": "Moderado",
+            "rpe_target": null
+          }
+        },
+        {
+          "order": 5,
+          "block": "secundario",
+          "exercise_name": "Curl Antebrazo con Fat Grips",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "15",
+            "intensity": "Quemazón",
+            "rpe_target": null
+          }
+        },
+        {
+          "order": 6,
+          "block": "secundario",
+          "exercise_name": "Suitcase Carry (Farmer Unilateral)",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "30 metros",
+            "intensity": "Pesado",
+            "rpe_target": null
+          }
+        },
+        {
+          "order": 7,
+          "block": "secundario",
+          "exercise_name": "Woodchoppers Sentado (Polea)",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "12 por lado",
+            "intensity": "Explosivo",
+            "rpe_target": null
+          }
+        }
+      ]
+    },
+    {
+      "code": "A2",
+      "title": "Día A2: Ondulación Tracción Fuerza / Empuje Hipertrofia",
+      "focus": "Pull Volumen / Push Fuerza",
+      "slots": [
+        {
+          "order": 1,
+          "block": "principal",
+          "exercise_name": "Remo Gironda Pesado (Pull F)",
+          "scheme": {
+            "sets": 4,
+            "reps": 5,
+            "pct_max": 85,
+            "rpe_target": 9.0,
+            "raw": "4*5*85%"
+          }
+        },
+        {
+          "order": 2,
+          "block": "principal",
+          "exercise_name": "Jalón al Pecho Prono Pesado",
+          "scheme": {
+            "sets": 4,
+            "reps": 5,
+            "pct_max": 85,
+            "rpe_target": 9.0,
+            "raw": "4*5*85%"
+          }
+        },
+        {
+          "order": 3,
+          "block": "secundario",
+          "exercise_name": "Press de Banca Plano (Volumen)",
+          "secondary": {
+            "series": 4,
+            "reps_or_time": "12 (65%)",
+            "intensity": "RPE 7.5",
+            "rpe_target": 7.5
+          }
+        },
+        {
+          "order": 4,
+          "block": "secundario",
+          "exercise_name": "Press Militar Mancuerna",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "10 (70%)",
+            "intensity": "RPE 8",
+            "rpe_target": 8.0
+          }
+        }
+      ]
+    },
+    {
+      "code": "B2",
+      "title": "Día B2: Ondulación Empuje Fuerza / Tracción Hipertrofia",
+      "focus": "Push Volumen / Pull Fuerza",
+      "slots": [
+        {
+          "order": 1,
+          "block": "principal",
+          "exercise_name": "Press de Banca Inclinado (Fuerza)",
+          "scheme": {
+            "sets": 4,
+            "reps": 5,
+            "pct_max": 85,
+            "rpe_target": 9.0,
+            "raw": "4*5*85%"
+          }
+        },
+        {
+          "order": 2,
+          "block": "principal",
+          "exercise_name": "Press de Hombro Hammer",
+          "scheme": {
+            "sets": 3,
+            "reps": 6,
+            "pct_max": 80,
+            "rpe_target": 8.5,
+            "raw": "3*6*80%"
+          }
+        },
+        {
+          "order": 3,
+          "block": "secundario",
+          "exercise_name": "Dominadas Supinas (Volumen)",
+          "secondary": {
+            "series": 4,
+            "reps_or_time": "10-12",
+            "intensity": "RPE 8",
+            "rpe_target": 8.0
+          }
+        },
+        {
+          "order": 4,
+          "block": "secundario",
+          "exercise_name": "Remo de Pecho Apoyado Banco",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "12",
+            "intensity": "Estrés Metabólico",
+            "rpe_target": null
+          }
+        }
+      ]
+    },
+    {
+      "code": "C2",
+      "title": "Día C2: Acondicionamiento Metabólico & Movilidad",
+      "focus": "Cardio / Flexibilidad",
+      "slots": [
+        {
+          "order": 1,
+          "block": "principal",
+          "exercise_name": "SkiErg o Bicicleta de Brazos",
+          "scheme": {
+            "sets": null,
+            "reps": null,
+            "pct_max": null,
+            "rpe_target": null,
+            "raw": "8 Intervalos",
+            "note": "HIIT 30\"/90\""
+          }
+        },
+        {
+          "order": 2,
+          "block": "secundario",
+          "exercise_name": "Estiramiento Flexores de Cadera (Sana)",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "45 segundos",
+            "intensity": "Pasivo",
+            "rpe_target": null
+          }
+        },
+        {
+          "order": 3,
+          "block": "secundario",
+          "exercise_name": "Movilidad Cápsula Posterior Hombro",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "10 por lado",
+            "intensity": "Controlado",
+            "rpe_target": null
+          }
+        },
+        {
+          "order": 4,
+          "block": "secundario",
+          "exercise_name": "Prensa Unilateral Pierna SANA (Fuerza)",
+          "secondary": {
+            "series": 3,
+            "reps_or_time": "6 reps",
+            "intensity": "85% 1RM",
+            "rpe_target": null
+          }
+        }
+      ]
+    }
+  ],
+  "weekly_schedule": [
+    {
+      "weekday": "Lunes",
+      "day_template_code": "A1",
+      "label": "Pull Fuerza"
+    },
+    {
+      "weekday": "Martes",
+      "day_template_code": "B1",
+      "label": "Push Volumen"
+    },
+    {
+      "weekday": "Miércoles",
+      "day_template_code": "C1",
+      "label": "Transferencia Cruzada / Potencia"
+    },
+    {
+      "weekday": "Jueves",
+      "day_template_code": "A2",
+      "label": "Pull Volumen"
+    },
+    {
+      "weekday": "Viernes",
+      "day_template_code": "B2",
+      "label": "Push Fuerza"
+    },
+    {
+      "weekday": "Sábado",
+      "day_template_code": "C2",
+      "label": "Acondicionamiento UB"
+    },
+    {
+      "weekday": "Domingo",
+      "day_template_code": null,
+      "label": "Descanso"
+    }
+  ]
+}
