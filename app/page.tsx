@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PwaStatus } from "@/components/PwaStatus";
 
 export default function Home() {
@@ -25,6 +26,13 @@ export default function Home() {
           </span>
           {supabaseConfigured ? "sí" : "no (completá .env.local)"}
         </div>
+
+        <Link
+          href="/equipos"
+          className="rounded-lg bg-zinc-900 px-4 py-2 text-center text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+        >
+          Ir a Equipos
+        </Link>
       </main>
     </div>
   );
