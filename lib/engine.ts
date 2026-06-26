@@ -108,7 +108,7 @@ export function suggestNextLoad(input: SuggestNextLoadInput, equipment: Equipmen
       // No hay escalón disponible por encima de la carga actual (tope del
       // equipo): la sugerencia es +e1RM, no snappeada a una grilla que ya no
       // tiene margen.
-      const ideal = lastLoad * 1.025;
+      const ideal = Math.round(lastLoad * 1.025 * 100) / 100;
       return { action: "increase", ideal, real: ideal, delta: 0, reason };
     }
     return { ...snapped(available[stepIdx]), action: "increase", reason };
@@ -132,7 +132,7 @@ export function suggestNextLoad(input: SuggestNextLoadInput, equipment: Equipmen
   }
 
   const stepsDown = available.filter((l) => l < lastLoad);
-  const nextDown = stepsDown.length > 0 ? stepsDown[stepsDown.length - 1] : lastLoad * 0.95;
+  const nextDown = stepsDown.length > 0 ? stepsDown[stepsDown.length - 1] : Math.round(lastLoad * 0.95 * 100) / 100;
   return {
     ...snapped(nextDown),
     action: "decrease",

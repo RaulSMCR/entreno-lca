@@ -53,6 +53,12 @@ export default function Home() {
         >
           Ir a Semana
         </Link>
+        <Link
+          href="/entrenar"
+          className="rounded-lg bg-emerald-600 px-4 py-3 text-center text-base font-semibold text-white"
+        >
+          Entrenar
+        </Link>
       </main>
     </div>
   );
