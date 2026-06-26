@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 
 export function PwaStatus() {
+  // typeof window (no navigator): Node SSR define un navigator parcial (sin
+  // onLine) para el polyfill de fetch, así que chequear navigator a secas da
+  // un mismatch de hidratación falso "offline" en el render del servidor.
   const [online, setOnline] = useState(() =>
-    typeof navigator === "undefined" ? true : navigator.onLine
+    typeof window === "undefined" ? true : navigator.onLine
   );
   const [swReady, setSwReady] = useState(false);
   const [standalone] = useState(() =>
