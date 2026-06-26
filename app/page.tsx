@@ -27,11 +27,31 @@ export default function Home() {
           {supabaseConfigured ? "sí" : "no (completá .env.local)"}
         </div>
 
+        <div className="grid grid-cols-3 gap-2">
+          <Link
+            href="/equipos"
+            className="rounded-lg bg-zinc-900 px-3 py-2 text-center text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+          >
+            Equipos
+          </Link>
+          <Link
+            href="/ejercicios"
+            className="rounded-lg bg-zinc-900 px-3 py-2 text-center text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+          >
+            Ejercicios
+          </Link>
+          <Link
+            href="/plantillas"
+            className="rounded-lg bg-zinc-900 px-3 py-2 text-center text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+          >
+            Plantillas
+          </Link>
+        </div>
         <Link
-          href="/equipos"
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-center text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+          href="/semana"
+          className="rounded-lg border border-zinc-300 px-4 py-2 text-center text-sm font-medium text-zinc-900 dark:border-zinc-700 dark:text-zinc-50"
         >
-          Ir a Equipos
+          Ir a Semana
         </Link>
       </main>
     </div>
