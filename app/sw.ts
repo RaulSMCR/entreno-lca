@@ -12,6 +12,11 @@ declare const self: ServiceWorkerGlobalScope;
 
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
+  precacheOptions: {
+    cleanupOutdatedCaches: true,
+    navigateFallback: "/",
+    navigateFallbackDenylist: [/^\/api\//],
+  },
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
