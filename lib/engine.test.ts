@@ -113,6 +113,23 @@ describe("suggestNextLoad", () => {
     expect(result.real).toBeLessThan(75);
   });
 
+  it("con readiness baja, modera un increase a maintain", () => {
+    const result = suggestNextLoad(
+      { ...baseInput, last_session_sets: [{ load: 75, reps: 5, rpe: 7.5 }], readiness: 2 },
+      barbell
+    );
+    expect(result.action).toBe("maintain");
+    expect(result.real).toBe(75);
+  });
+
+  it("con readiness normal, el mismo camino sigue siendo increase", () => {
+    const result = suggestNextLoad(
+      { ...baseInput, last_session_sets: [{ load: 75, reps: 5, rpe: 7.5 }], readiness: 4 },
+      barbell
+    );
+    expect(result.action).toBe("increase");
+  });
+
   it("sin escalón disponible hacia arriba, recomienda +e1RM sin snappear", () => {
     const topped: EquipmentLoadConfig = { load_mode: "list", available_loads: [75] };
     const result = suggestNextLoad(

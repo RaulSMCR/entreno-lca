@@ -64,6 +64,8 @@ export type SuggestNextLoadInput = {
   target_reps: number;
   target_rpe: number;
   last_session_sets: SetResult[];
+  /** Readiness 1-5 reportada al iniciar la sesión que generó estas series; <= 2 modera la sugerencia. */
+  readiness?: number | null;
 };
 
 export type LoadSuggestionAction = "increase" | "maintain" | "repeat" | "decrease";
@@ -73,16 +75,21 @@ export type LoadSuggestion = SnappedLoad & {
   reason: string;
 };
 
+const LOW_READINESS_THRESHOLD = 2;
+
 // Tres caminos (el tercero con dos variantes, repetir o bajar, según qué tan
 // corto se quedó):
 // 1) cumplió reps con RPE <= objetivo            -> increase
 // 2) cumplió reps pero con RPE > objetivo         -> maintain
 // 3) no cumplió reps (o RPE a fallo)              -> repeat | decrease
+// Con readiness baja (<=2 de 5) se modera un escalón: increase -> maintain,
+// para no perseguir progresión cuando el cuerpo venía golpeado esa sesión.
 export function suggestNextLoad(input: SuggestNextLoadInput, equipment: EquipmentLoadConfig): LoadSuggestion {
-  const { target_reps, target_rpe, last_session_sets } = input;
+  const { target_reps, target_rpe, last_session_sets, readiness } = input;
   if (last_session_sets.length === 0) {
     throw new Error("suggestNextLoad necesita al menos una serie de la sesión anterior");
   }
+  const lowReadiness = readiness != null && readiness <= LOW_READINESS_THRESHOLD;
 
   const lastLoad = last_session_sets[last_session_sets.length - 1].load;
   const minReps = Math.min(...last_session_sets.map((s) => s.reps));
@@ -102,6 +109,14 @@ export function suggestNextLoad(input: SuggestNextLoadInput, equipment: Equipmen
   }
 
   if (metReps && maxRpe <= target_rpe) {
+    if (lowReadiness) {
+      return {
+        ...snapped(lastLoad),
+        action: "maintain",
+        reason: `Cumpliste ${target_reps}+ reps con RPE ${maxRpe}, pero la readiness fue baja: mantené la carga esta vez en lugar de subir.`,
+      };
+    }
+
     const stepIdx = available.findIndex((l) => l > lastLoad);
     const reason = `Cumpliste ${target_reps}+ reps con RPE ${maxRpe} (objetivo ${target_rpe}): subí al próximo escalón.`;
     if (stepIdx === -1) {

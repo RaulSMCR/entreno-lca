@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { db, newId, nowIso, type LocalSetLog } from "@/lib/db";
+import type { VoicePrefill } from "./SlotCard";
 
 const RPE_STEPS = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 
@@ -22,6 +23,7 @@ export function SetRow({
   defaults,
   existing,
   targetLabel,
+  voicePrefill,
 }: {
   sessionId: string;
   userId: string;
@@ -32,11 +34,14 @@ export function SetRow({
   defaults: { load: number | null; reps: number | null; rpe: number | null };
   existing: LocalSetLog | undefined;
   targetLabel: string | null;
+  voicePrefill?: VoicePrefill;
 }) {
-  const [editing, setEditing] = useState(!existing);
-  const [load, setLoad] = useState(existing?.actual_load_kg ?? defaults.load ?? loadOptions[0] ?? 0);
-  const [qty, setQty] = useState(existing?.actual_reps ?? defaults.reps ?? 0);
-  const [rpe, setRpe] = useState<number | null>(existing?.rpe_reported ?? defaults.rpe ?? null);
+  const [editing, setEditing] = useState(!existing || !!voicePrefill);
+  const [load, setLoad] = useState(
+    voicePrefill?.load ?? existing?.actual_load_kg ?? defaults.load ?? loadOptions[0] ?? 0
+  );
+  const [qty, setQty] = useState(voicePrefill?.reps ?? existing?.actual_reps ?? defaults.reps ?? 0);
+  const [rpe, setRpe] = useState<number | null>(voicePrefill?.rpe ?? existing?.rpe_reported ?? defaults.rpe ?? null);
   const [rpeAtRep, setRpeAtRep] = useState<number | null>(existing?.rpe_at_rep ?? null);
   const [isFailure, setIsFailure] = useState(existing?.is_failure ?? false);
 
@@ -99,7 +104,11 @@ export function SetRow({
           {existing.rpe_reported != null ? ` · RPE ${existing.rpe_reported}` : ""}
           {existing.is_failure ? " · fallo técnico" : ""}
         </span>
-        <button onClick={() => setEditing(true)} className="text-zinc-500 dark:text-zinc-400">
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="min-h-11 px-2 text-zinc-500 dark:text-zinc-400"
+        >
           Editar
         </button>
       </div>
@@ -116,9 +125,10 @@ export function SetRow({
       {unit === "kg" &&
         (loadOptions.length > 0 ? (
           <select
+            aria-label="Carga en kg"
             value={load}
             onChange={(e) => setLoad(Number(e.target.value))}
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-900"
+            className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-900"
           >
             {loadOptions.map((l) => (
               <option key={l} value={l}>
@@ -128,11 +138,12 @@ export function SetRow({
           </select>
         ) : (
           <input
+            aria-label="Carga en kg"
             inputMode="decimal"
             value={load}
             onChange={(e) => setLoad(Number(e.target.value) || 0)}
             placeholder="Carga (kg)"
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-900"
+            className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-900"
           />
         ))}
 
@@ -141,41 +152,46 @@ export function SetRow({
           <button
             type="button"
             onClick={toggleStopwatch}
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700"
+            className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700"
           >
             {running ? "Detener" : "Iniciar"} cronómetro
           </button>
         )}
         <button
           type="button"
+          aria-label={unit === "kg" ? "Restar repetición" : `Restar ${UNIT_LABEL[unit] ?? "reps"}`}
           onClick={() => setQty((q) => Math.max(0, q - 1))}
-          className="h-10 w-10 rounded-lg border border-zinc-300 text-lg dark:border-zinc-700"
+          className="h-11 w-11 rounded-lg border border-zinc-300 text-lg dark:border-zinc-700"
         >
           −
         </button>
         <input
+          aria-label={unit === "kg" ? "Repeticiones" : UNIT_LABEL[unit] ?? "Cantidad"}
           inputMode="numeric"
           value={qty}
           onChange={(e) => setQty(Number(e.target.value) || 0)}
-          className="w-20 rounded-lg border border-zinc-300 px-3 py-2 text-center text-base dark:border-zinc-700 dark:bg-zinc-900"
+          className="min-h-11 w-20 rounded-lg border border-zinc-300 px-3 py-2 text-center text-base dark:border-zinc-700 dark:bg-zinc-900"
         />
         <button
           type="button"
+          aria-label={unit === "kg" ? "Sumar repetición" : `Sumar ${UNIT_LABEL[unit] ?? "reps"}`}
           onClick={() => setQty((q) => q + 1)}
-          className="h-10 w-10 rounded-lg border border-zinc-300 text-lg dark:border-zinc-700"
+          className="h-11 w-11 rounded-lg border border-zinc-300 text-lg dark:border-zinc-700"
         >
           +
         </button>
         <span className="text-sm text-zinc-500 dark:text-zinc-400">{unit !== "kg" ? UNIT_LABEL[unit] : "reps"}</span>
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-1.5" role="group" aria-label="RPE percibido">
         {RPE_STEPS.map((r) => (
           <button
             key={r}
             type="button"
+            aria-pressed={rpe === r ? "true" : "false"}
+            aria-label={`RPE ${r}`}
             onClick={() => setRpe(r)}
-            className={`rounded-lg border px-3 py-2 text-sm ${
+            className={`min-h-11 min-w-11 rounded-lg border px-3 py-2 text-sm ${
               rpe === r
                 ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
                 : "border-zinc-300 dark:border-zinc-700"
@@ -187,24 +203,31 @@ export function SetRow({
       </div>
 
       <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-        <label className="flex items-center gap-1">
+        <label className="flex min-h-11 items-center gap-1 py-2">
           ¿A qué rep sentiste el RPE?
           <input
             inputMode="numeric"
             value={rpeAtRep ?? ""}
             onChange={(e) => setRpeAtRep(e.target.value === "" ? null : Number(e.target.value))}
-            className="w-14 rounded-lg border border-zinc-300 px-2 py-1 text-center dark:border-zinc-700 dark:bg-zinc-900"
+            className="min-h-11 w-14 rounded-lg border border-zinc-300 px-2 py-1 text-center dark:border-zinc-700 dark:bg-zinc-900"
           />
         </label>
-        <label className="flex items-center gap-1">
-          <input type="checkbox" checked={isFailure} onChange={(e) => setIsFailure(e.target.checked)} />
+        <label className="flex min-h-11 items-center gap-1.5 py-2">
+          <input
+            type="checkbox"
+            checked={isFailure}
+            onChange={(e) => setIsFailure(e.target.checked)}
+            className="h-5 w-5"
+          />
           Fallo técnico
         </label>
       </div>
 
       <button
+        type="button"
         onClick={save}
-        className="rounded-lg bg-emerald-600 px-4 py-3 text-center text-lg font-semibold text-white"
+        aria-label="Guardar serie"
+        className="min-h-11 rounded-lg bg-emerald-600 px-4 py-3 text-center text-lg font-semibold text-white"
       >
         ✓
       </button>

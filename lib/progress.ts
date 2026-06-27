@@ -35,6 +35,61 @@ export function weeklyVolume(sets: VolumeSet[]): number {
   return sets.reduce((sum, s) => sum + (s.load ?? 0) * (s.reps ?? 0), 0);
 }
 
+export type DeloadReason = "stagnation" | "chronic_high_rpe";
+
+export type DeloadCheck = { suggested: boolean; reasons: DeloadReason[] };
+
+// RPE crónicamente alto: las últimas `n` sesiones (en orden cronológico) con
+// RPE medio en o por encima de `threshold` — señal de fatiga acumulada aunque
+// el e1RM todavía no se haya estancado.
+export function isChronicHighRpe(rpeAvgsChronological: number[], n = 3, threshold = 9): boolean {
+  if (rpeAvgsChronological.length < n) return false;
+  return rpeAvgsChronological.slice(-n).every((rpe) => rpe >= threshold);
+}
+
+// Combina estancamiento de e1RM y RPE crónicamente alto: cualquiera de los dos
+// alcanza para proponer un deload.
+export function deloadSuggestion(history: TrendPoint[], rpeAvgsChronological: number[]): DeloadCheck {
+  const reasons: DeloadReason[] = [];
+  if (isStagnant(history)) reasons.push("stagnation");
+  if (isChronicHighRpe(rpeAvgsChronological)) reasons.push("chronic_high_rpe");
+  return { suggested: reasons.length > 0, reasons };
+}
+
+export type WeeklyVolumePoint = { weekStart: string; totalKg: number };
+
+// Agrupa por semana (lunes a domingo, en hora local) para graficar la tendencia
+// de volumen; `weeks` recorta a las últimas N semanas con datos.
+export function weeklyVolumeSeries(sets: { load: number | null; reps: number | null; date: string }[], weeks = 8): WeeklyVolumePoint[] {
+  const byWeek = new Map<string, number>();
+  for (const s of sets) {
+    const week = isoWeekStart(s.date);
+    byWeek.set(week, (byWeek.get(week) ?? 0) + (s.load ?? 0) * (s.reps ?? 0));
+  }
+  return Array.from(byWeek.entries())
+    .map(([weekStart, totalKg]) => ({ weekStart, totalKg }))
+    .sort((a, b) => a.weekStart.localeCompare(b.weekStart))
+    .slice(-weeks);
+}
+
+function isoWeekStart(dateStr: string): string {
+  const d = new Date(`${dateStr}T00:00:00`);
+  const mondayOffset = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - mondayOffset);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+export type RpeBucket = { rpe: number; count: number };
+
+// Distribución de esfuerzo: cuántas series caen en cada valor de RPE reportado.
+export function rpeDistribution(rpeValues: number[]): RpeBucket[] {
+  const counts = new Map<number, number>();
+  for (const rpe of rpeValues) counts.set(rpe, (counts.get(rpe) ?? 0) + 1);
+  return Array.from(counts.entries())
+    .map(([rpe, count]) => ({ rpe, count }))
+    .sort((a, b) => a.rpe - b.rpe);
+}
+
 export type SessionRpe = { sessionId: string; date: string; avgRpe: number };
 
 export function averageRpePerSession(

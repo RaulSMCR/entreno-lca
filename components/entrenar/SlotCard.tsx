@@ -2,11 +2,13 @@
 
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, type LocalTemplateSlot } from "@/lib/db";
-import { resolveAvailableLoads, type EquipmentLoadConfig } from "@/lib/loads";
+import { resolveAvailableLoads, snapLoad, type EquipmentLoadConfig } from "@/lib/loads";
 import { targetLoad } from "@/lib/engine";
 import { SetRow } from "./SetRow";
 
 const NO_EQUIPMENT: EquipmentLoadConfig = { load_mode: "range", min_kg: 0, max_kg: 0, step_kg: 0 };
+
+export type VoicePrefill = { load: number | null; reps: number | null; rpe: number | null; ts: number };
 
 function schemeLabel(slot: LocalTemplateSlot): string {
   if (slot.block === "principal") {
@@ -22,7 +24,17 @@ function schemeLabel(slot: LocalTemplateSlot): string {
   return parts.join(" · ");
 }
 
-export function SlotCard({ slot, sessionId, userId }: { slot: LocalTemplateSlot; sessionId: string; userId: string }) {
+export function SlotCard({
+  slot,
+  sessionId,
+  userId,
+  voicePrefill,
+}: {
+  slot: LocalTemplateSlot;
+  sessionId: string;
+  userId: string;
+  voicePrefill?: VoicePrefill;
+}) {
   const exercise = useLiveQuery(() => db.exercises.get(slot.exercise_id), [slot.exercise_id]);
   const equipment = useLiveQuery(
     async () => (exercise?.equipment_id ? db.equipment.get(exercise.equipment_id) : undefined),
@@ -64,6 +76,17 @@ export function SlotCard({ slot, sessionId, userId }: { slot: LocalTemplateSlot;
   const targetLabel = target ? `Objetivo ${target.real}kg · ideal ${target.ideal.toFixed(1)}` : null;
   const numSets = slot.sets ?? 1;
 
+  const nextOpenSetNumber = Array.from({ length: numSets }, (_, i) => i + 1).find(
+    (setNumber) => !logs?.find((l) => l.set_number === setNumber)
+  );
+  const snappedVoicePrefill: VoicePrefill | undefined = voicePrefill && {
+    ...voicePrefill,
+    load:
+      voicePrefill.load != null && exercise.unit === "kg"
+        ? snapLoad(voicePrefill.load, equipmentConfig, "nearest").real
+        : voicePrefill.load,
+  };
+
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
       <div>
@@ -73,20 +96,24 @@ export function SlotCard({ slot, sessionId, userId }: { slot: LocalTemplateSlot;
         </p>
       </div>
 
-      {Array.from({ length: numSets }, (_, i) => i + 1).map((setNumber) => (
-        <SetRow
-          key={setNumber}
-          sessionId={sessionId}
-          userId={userId}
-          exerciseId={slot.exercise_id}
-          setNumber={setNumber}
-          unit={exercise.unit as "kg" | "seconds" | "meters" | "intervals" | "reps"}
-          loadOptions={loadOptions}
-          defaults={defaults}
-          existing={logs?.find((l) => l.set_number === setNumber)}
-          targetLabel={targetLabel}
-        />
-      ))}
+      {Array.from({ length: numSets }, (_, i) => i + 1).map((setNumber) => {
+        const rowVoicePrefill = setNumber === nextOpenSetNumber ? snappedVoicePrefill : undefined;
+        return (
+          <SetRow
+            key={rowVoicePrefill ? `${setNumber}-${rowVoicePrefill.ts}` : setNumber}
+            sessionId={sessionId}
+            userId={userId}
+            exerciseId={slot.exercise_id}
+            setNumber={setNumber}
+            unit={exercise.unit as "kg" | "seconds" | "meters" | "intervals" | "reps"}
+            loadOptions={loadOptions}
+            defaults={defaults}
+            existing={logs?.find((l) => l.set_number === setNumber)}
+            targetLabel={targetLabel}
+            voicePrefill={rowVoicePrefill}
+          />
+        );
+      })}
     </div>
   );
 }

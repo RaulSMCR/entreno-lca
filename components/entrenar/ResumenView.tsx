@@ -2,6 +2,8 @@
 
 import type { SessionSummary } from "./SesionView";
 import { SyncStatus } from "@/components/SyncStatus";
+import { db } from "@/lib/db";
+import { buildHistoryRows, downloadHistoryAsCsv, downloadHistoryAsJson } from "@/lib/export";
 
 const ACTION_LABEL: Record<string, string> = {
   increase: "Subí",
@@ -10,13 +12,42 @@ const ACTION_LABEL: Record<string, string> = {
   decrease: "Bajá",
 };
 
-export function ResumenView({ summary, onClose }: { summary: SessionSummary[]; onClose: () => void }) {
+const ACTION_STYLE: Record<string, string> = {
+  increase: "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100",
+  maintain: "border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-100",
+  repeat: "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100",
+  decrease: "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100",
+};
+
+export function ResumenView({
+  summary,
+  sessionId,
+  sessionDate,
+  onClose,
+}: {
+  summary: SessionSummary[];
+  sessionId: string | null;
+  sessionDate: string;
+  onClose: () => void;
+}) {
+  async function exportSession(format: "csv" | "json") {
+    if (!sessionId) return;
+    const logs = await db.set_logs.where("session_id").equals(sessionId).toArray();
+    const exerciseIds = Array.from(new Set(logs.map((l) => l.exercise_id)));
+    const exercises = await db.exercises.bulkGet(exerciseIds);
+    const exerciseNames = Object.fromEntries(exercises.filter((e) => e != null).map((e) => [e.id, e.name]));
+    const rows = buildHistoryRows(logs, { [sessionId]: sessionDate }, exerciseNames);
+    if (format === "csv") downloadHistoryAsCsv(`sesion-${sessionDate}.csv`, rows);
+    else downloadHistoryAsJson(`sesion-${sessionDate}.json`, rows);
+  }
+
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-4 pb-24">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-4 pb-24 print:pb-4">
+      <div className="flex items-center justify-between print:hidden">
         <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Resumen de la sesión</h1>
         <SyncStatus />
       </div>
+      <h1 className="hidden text-xl font-semibold text-black print:block">Resumen de la sesión — {sessionDate}</h1>
 
       {summary.length === 0 && (
         <p className="text-sm text-zinc-500 dark:text-zinc-400">No se registró ninguna serie en esta sesión.</p>
@@ -39,12 +70,12 @@ export function ResumenView({ summary, onClose }: { summary: SessionSummary[]; o
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">e1RM sin cambios ({item.oldE1rm ?? "—"}kg)</p>
               )}
               {item.suggestion && (
-                <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                  <span className="font-medium">
-                    {ACTION_LABEL[item.suggestion.action] ?? item.suggestion.action} a {item.suggestion.real}kg.
-                  </span>{" "}
-                  {item.suggestion.reason}
-                </p>
+                <div className={`mt-1 rounded-xl border px-3 py-2 ${ACTION_STYLE[item.suggestion.action] ?? ""}`}>
+                  <p className="font-semibold">
+                    {ACTION_LABEL[item.suggestion.action] ?? item.suggestion.action} a {item.suggestion.real}kg
+                  </p>
+                  <p className="text-sm opacity-90">{item.suggestion.reason}</p>
+                </div>
               )}
             </>
           ) : (
@@ -56,9 +87,36 @@ export function ResumenView({ summary, onClose }: { summary: SessionSummary[]; o
         </div>
       ))}
 
+      {sessionId && summary.length > 0 && (
+        <div className="flex gap-2 print:hidden">
+          <button
+            type="button"
+            onClick={() => exportSession("csv")}
+            className="h-11 flex-1 rounded-lg border border-zinc-300 text-sm font-medium text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
+          >
+            Exportar CSV
+          </button>
+          <button
+            type="button"
+            onClick={() => exportSession("json")}
+            className="h-11 flex-1 rounded-lg border border-zinc-300 text-sm font-medium text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
+          >
+            Exportar JSON
+          </button>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="h-11 flex-1 rounded-lg border border-zinc-300 text-sm font-medium text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
+          >
+            Imprimir
+          </button>
+        </div>
+      )}
+
       <button
+        type="button"
         onClick={onClose}
-        className="rounded-lg bg-zinc-900 px-4 py-3 text-center font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+        className="rounded-lg bg-zinc-900 px-4 py-3 text-center font-medium text-white dark:bg-zinc-50 dark:text-zinc-900 print:hidden"
       >
         Listo
       </button>

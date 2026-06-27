@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { averageRpePerSession, isStagnant, projectE1rm, weeklyVolume } from "./progress";
+import {
+  averageRpePerSession,
+  deloadSuggestion,
+  isChronicHighRpe,
+  isStagnant,
+  projectE1rm,
+  rpeDistribution,
+  weeklyVolume,
+  weeklyVolumeSeries,
+} from "./progress";
 
 describe("projectE1rm", () => {
   it("sin historial suficiente, no proyecta", () => {
@@ -63,6 +72,92 @@ describe("weeklyVolume", () => {
       { load: null, reps: 30 }, // ej. plancha en segundos, no aporta volumen en kg
     ]);
     expect(volume).toBe(1000);
+  });
+});
+
+describe("isChronicHighRpe", () => {
+  it("sin suficientes sesiones, no alerta", () => {
+    expect(isChronicHighRpe([9, 9], 3)).toBe(false);
+  });
+
+  it("últimas n sesiones todas en o por encima del umbral -> true", () => {
+    expect(isChronicHighRpe([7, 9, 9.5, 9], 3, 9)).toBe(true);
+  });
+
+  it("alguna sesión reciente por debajo del umbral -> false", () => {
+    expect(isChronicHighRpe([9, 9, 8, 9], 3, 9)).toBe(false);
+  });
+});
+
+describe("deloadSuggestion", () => {
+  it("sin estancamiento ni RPE alto, no sugiere deload", () => {
+    const history = [
+      { date: "2026-01-01", e1rm: 100 },
+      { date: "2026-01-08", e1rm: 103 },
+      { date: "2026-01-15", e1rm: 106 },
+    ];
+    expect(deloadSuggestion(history, [7, 7.5, 8]).suggested).toBe(false);
+  });
+
+  it("estancamiento sólo, sugiere deload por esa razón", () => {
+    const history = [
+      { date: "2026-01-01", e1rm: 100 },
+      { date: "2026-01-08", e1rm: 105 },
+      { date: "2026-01-15", e1rm: 103 },
+      { date: "2026-01-22", e1rm: 102 },
+      { date: "2026-01-29", e1rm: 104 },
+      { date: "2026-02-05", e1rm: 103 },
+    ];
+    const result = deloadSuggestion(history, [7, 7, 7]);
+    expect(result.suggested).toBe(true);
+    expect(result.reasons).toEqual(["stagnation"]);
+  });
+
+  it("RPE crónicamente alto sólo, sugiere deload por esa razón", () => {
+    const history = [
+      { date: "2026-01-01", e1rm: 100 },
+      { date: "2026-01-08", e1rm: 103 },
+    ];
+    const result = deloadSuggestion(history, [9, 9.5, 9]);
+    expect(result.suggested).toBe(true);
+    expect(result.reasons).toEqual(["chronic_high_rpe"]);
+  });
+});
+
+describe("weeklyVolumeSeries", () => {
+  it("agrupa por semana (lunes a domingo) y ordena ascendente", () => {
+    const series = weeklyVolumeSeries([
+      { load: 100, reps: 5, date: "2026-01-05" }, // lunes
+      { load: 100, reps: 5, date: "2026-01-07" }, // misma semana
+      { load: 50, reps: 10, date: "2026-01-12" }, // semana siguiente
+    ]);
+    expect(series).toEqual([
+      { weekStart: "2026-01-05", totalKg: 1000 },
+      { weekStart: "2026-01-12", totalKg: 500 },
+    ]);
+  });
+
+  it("recorta a las últimas N semanas con datos", () => {
+    const sets = Array.from({ length: 10 }, (_, i) => ({
+      load: 10,
+      reps: 1,
+      date: `2026-${String(1 + Math.floor((i * 7) / 30)).padStart(2, "0")}-${String(1 + ((i * 7) % 28)).padStart(2, "0")}`,
+    }));
+    expect(weeklyVolumeSeries(sets, 3).length).toBeLessThanOrEqual(3);
+  });
+});
+
+describe("rpeDistribution", () => {
+  it("cuenta ocurrencias por valor de RPE, ordenado ascendente", () => {
+    expect(rpeDistribution([8, 7, 8, 9, 7, 8])).toEqual([
+      { rpe: 7, count: 2 },
+      { rpe: 8, count: 3 },
+      { rpe: 9, count: 1 },
+    ]);
+  });
+
+  it("sin datos, devuelve array vacío", () => {
+    expect(rpeDistribution([])).toEqual([]);
   });
 });
 

@@ -5,9 +5,11 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db, newId, nowIso, type LocalSession } from "@/lib/db";
 import { todayIso } from "@/lib/date";
 import { SyncStatus } from "@/components/SyncStatus";
-import { SlotCard } from "./SlotCard";
+import { SlotCard, type VoicePrefill } from "./SlotCard";
+import { VoiceCapture, type VoiceContextExercise } from "./VoiceCapture";
 import { suggestNextLoad, suggestNextTarget, updateE1rm, type LoadSuggestion } from "@/lib/engine";
-import type { EquipmentLoadConfig } from "@/lib/loads";
+import { resolveAvailableLoads, type EquipmentLoadConfig } from "@/lib/loads";
+import type { VoiceParsedSet } from "@/app/api/parse-voice/route";
 
 const NO_EQUIPMENT: EquipmentLoadConfig = { load_mode: "range", min_kg: 0, max_kg: 0, step_kg: 0 };
 
@@ -38,6 +40,7 @@ export function SesionView({
   onFinish: (summary: SessionSummary[]) => void;
 }) {
   const [finishing, setFinishing] = useState(false);
+  const [voiceMatches, setVoiceMatches] = useState<Record<string, VoicePrefill>>({});
 
   const slots = useLiveQuery(
     async () => {
@@ -48,6 +51,43 @@ export function SesionView({
     [session.day_template_id],
     []
   );
+
+  const voiceContext = useLiveQuery(
+    async () => {
+      const exerciseIds = Array.from(new Set((slots ?? []).map((s) => s.exercise_id)));
+      const exercises = (await db.exercises.bulkGet(exerciseIds)).filter((e): e is NonNullable<typeof e> => !!e);
+      const equipmentIds = Array.from(new Set(exercises.map((e) => e.equipment_id).filter((id): id is string => !!id)));
+      const equipmentRows = (await db.equipment.bulkGet(equipmentIds)).filter((e): e is NonNullable<typeof e> => !!e);
+      const equipmentById = new Map(equipmentRows.map((e) => [e.id, e]));
+
+      const byName = new Map<string, string>();
+      const entries: VoiceContextExercise[] = exercises.map((exercise) => {
+        byName.set(exercise.name, exercise.id);
+        const equipment = exercise.equipment_id ? equipmentById.get(exercise.equipment_id) : undefined;
+        return {
+          name: exercise.name,
+          unit: exercise.unit as VoiceContextExercise["unit"],
+          loadOptions: exercise.unit === "kg" ? resolveAvailableLoads((equipment as EquipmentLoadConfig | undefined) ?? NO_EQUIPMENT) : undefined,
+        };
+      });
+      return { entries, byName };
+    },
+    [slots],
+    { entries: [] as VoiceContextExercise[], byName: new Map<string, string>() }
+  );
+
+  function handleVoiceParsed(sets: VoiceParsedSet[]) {
+    setVoiceMatches((prev) => {
+      const next = { ...prev };
+      const ts = Date.now();
+      for (const set of sets) {
+        const exerciseId = voiceContext.byName.get(set.exercise);
+        if (!exerciseId) continue;
+        next[exerciseId] = { load: set.load_kg, reps: set.reps, rpe: set.rpe, ts };
+      }
+      return next;
+    });
+  }
 
   async function handleFinish() {
     setFinishing(true);
@@ -93,7 +133,7 @@ export function SesionView({
           if (slot?.reps != null && slot?.rpe_target != null) {
             const equipment = exercise.equipment_id ? await db.equipment.get(exercise.equipment_id) : undefined;
             suggestion = suggestNextLoad(
-              { target_reps: slot.reps, target_rpe: slot.rpe_target, last_session_sets: sets },
+              { target_reps: slot.reps, target_rpe: slot.rpe_target, last_session_sets: sets, readiness: session.readiness },
               (equipment as EquipmentLoadConfig | undefined) ?? NO_EQUIPMENT
             );
           }
@@ -129,8 +169,18 @@ export function SesionView({
         <SyncStatus />
       </div>
 
+      {voiceContext.entries.length > 0 && (
+        <VoiceCapture contexto={voiceContext.entries} onParsed={handleVoiceParsed} />
+      )}
+
       {(slots ?? []).map((slot) => (
-        <SlotCard key={slot.id} slot={slot} sessionId={session.id} userId={userId} />
+        <SlotCard
+          key={slot.id}
+          slot={slot}
+          sessionId={session.id}
+          userId={userId}
+          voicePrefill={voiceMatches[slot.exercise_id]}
+        />
       ))}
 
       {slots && slots.length === 0 && (
