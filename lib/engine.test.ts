@@ -6,6 +6,7 @@ import {
   suggestNextTarget,
   targetLoad,
   updateE1rm,
+  updateE1rmFromCalibration,
 } from "./engine";
 import type { EquipmentLoadConfig } from "./loads";
 
@@ -72,6 +73,31 @@ describe("updateE1rm", () => {
     const result = updateE1rm({ e1rm_kg: null }, [{ load: 50, reps: 5, rpe: 8 }]);
     expect(result.updated).toBe(true);
     expect(result.e1rm).toBeCloseTo(result.bestSetE1rm, 5);
+  });
+});
+
+describe("updateE1rmFromCalibration", () => {
+  it("direct_1rm_protocol reemplaza el e1RM sin suavizar, aunque suba mucho", () => {
+    const result = updateE1rmFromCalibration({ e1rm_kg: 100 }, 140, "direct_1rm_protocol");
+    expect(result).toEqual({ e1rm: 140, updated: true, bestSetE1rm: 140 });
+  });
+
+  it("five_rm_test suaviza con tope de 15%, no de 8%", () => {
+    const result = updateE1rmFromCalibration({ e1rm_kg: 100 }, 140, "five_rm_test");
+    expect(result.updated).toBe(true);
+    expect(result.e1rm).toBeCloseTo(115, 5); // 100 * 1.15
+    expect(result.bestSetE1rm).toBe(140);
+  });
+
+  it("no baja el e1RM si el test midió menos que el actual", () => {
+    const result = updateE1rmFromCalibration({ e1rm_kg: 100 }, 90, "ten_rm_test");
+    expect(result.updated).toBe(false);
+    expect(result.e1rm).toBe(100);
+  });
+
+  it("sin e1RM previo, toma el valor medido directamente", () => {
+    const result = updateE1rmFromCalibration({ e1rm_kg: null }, 80, "twelve_rm_test");
+    expect(result).toEqual({ e1rm: 80, updated: true, bestSetE1rm: 80 });
   });
 });
 

@@ -21,6 +21,11 @@ export type LocalSession = Mirrored<"sessions">;
 export type LocalSetLog = Mirrored<"set_logs">;
 export type LocalE1rmEstimate = Mirrored<"e1rm_estimates">;
 export type LocalSessionExerciseStatus = Mirrored<"session_exercise_statuses">;
+export type LocalUserProfile = Mirrored<"user_profiles">;
+export type LocalBodyWeightLog = Mirrored<"body_weight_logs">;
+export type LocalInbodyScan = Mirrored<"inbody_scans">;
+export type LocalCalibrationSession = Mirrored<"calibration_sessions">;
+export type LocalTrackingReminder = Mirrored<"tracking_reminders">;
 
 export const MIRRORED_TABLES = [
   "equipment",
@@ -32,6 +37,11 @@ export const MIRRORED_TABLES = [
   "set_logs",
   "e1rm_estimates",
   "session_exercise_statuses",
+  "user_profiles",
+  "body_weight_logs",
+  "inbody_scans",
+  "calibration_sessions",
+  "tracking_reminders",
 ] as const;
 
 export type MirroredTableName = (typeof MIRRORED_TABLES)[number];
@@ -46,6 +56,11 @@ class AppDB extends Dexie {
   set_logs!: Table<LocalSetLog, string>;
   e1rm_estimates!: Table<LocalE1rmEstimate, string>;
   session_exercise_statuses!: Table<LocalSessionExerciseStatus, string>;
+  user_profiles!: Table<LocalUserProfile, string>;
+  body_weight_logs!: Table<LocalBodyWeightLog, string>;
+  inbody_scans!: Table<LocalInbodyScan, string>;
+  calibration_sessions!: Table<LocalCalibrationSession, string>;
+  tracking_reminders!: Table<LocalTrackingReminder, string>;
 
   constructor() {
     super("entreno-lca");
@@ -98,6 +113,25 @@ class AppDB extends Dexie {
       set_logs: "id, session_id, exercise_id, template_slot_id, _dirty",
       e1rm_estimates: "id, exercise_id, _dirty",
       session_exercise_statuses: "id, session_id, exercise_id, template_slot_id, _dirty",
+    });
+    // v5: perfil de usuario, tracking corporal (peso/InBody) y calibración de
+    // cargas (U-1..U-4). user_profiles se indexa por su propio id (= auth uid),
+    // no tiene user_id.
+    this.version(5).stores({
+      equipment: "id, _dirty",
+      exercises: "id, _dirty",
+      day_templates: "id, code, _dirty",
+      template_slots: "id, day_template_id, _dirty",
+      weekly_schedule: "id, weekday, _dirty",
+      sessions: "id, date, _dirty",
+      set_logs: "id, session_id, exercise_id, template_slot_id, _dirty",
+      e1rm_estimates: "id, exercise_id, _dirty",
+      session_exercise_statuses: "id, session_id, exercise_id, template_slot_id, _dirty",
+      user_profiles: "id, _dirty",
+      body_weight_logs: "id, logged_at, _dirty",
+      inbody_scans: "id, scanned_at, _dirty",
+      calibration_sessions: "id, session_type, performed_at, _dirty",
+      tracking_reminders: "id, type, _dirty",
     });
   }
 }

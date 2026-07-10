@@ -11,8 +11,25 @@ import { buildHistoryRows, downloadHistoryAsCsv, downloadHistoryAsJson } from "@
 import { ExerciseProgressCard } from "./ExerciseProgressCard";
 import { WeeklyVolumeChart } from "./WeeklyVolumeChart";
 import { RpeDistributionChart } from "./RpeDistributionChart";
+import type { LocalTemplateSlot } from "@/lib/db";
 
 const VOLUME_WEEKS = 8;
+
+// Igual que en SlotCard.tsx — duplicado a propósito (misma convención usada
+// en el resto del código para esta función chica).
+function schemeLabel(slot: LocalTemplateSlot): string {
+  if (slot.block === "principal") {
+    const parts: string[] = [];
+    if (slot.sets != null && slot.reps != null) parts.push(`${slot.sets}×${slot.reps}`);
+    if (slot.pct_max != null) parts.push(`${slot.pct_max}%`);
+    if (slot.rpe_target != null) parts.push(`RPE ${slot.rpe_target}`);
+    return parts.join(" · ");
+  }
+  const parts: string[] = [];
+  if (slot.reps_or_time) parts.push(slot.reps_or_time);
+  if (slot.intensity_note) parts.push(slot.intensity_note);
+  return parts.join(" · ");
+}
 
 function daysAgoIso(n: number): string {
   const d = new Date();
@@ -57,9 +74,13 @@ export function ProgresoClient() {
   );
   const rpeBuckets = rpeDistribution(windowLogs.map((l) => l.rpe_reported).filter((r): r is number => r != null));
 
-  function exportHistory(format: "csv" | "json") {
+  async function exportHistory(format: "csv" | "json") {
     const exerciseNames = Object.fromEntries((allExercises ?? []).map((e) => [e.id, e.name]));
-    const rows = buildHistoryRows(activeLogs, sessionDatesAll, exerciseNames);
+    const slotIds = Array.from(new Set(activeLogs.map((l) => l.template_slot_id)));
+    const slots = await db.template_slots.bulkGet(slotIds);
+    const slotSchemes = Object.fromEntries(slots.filter((s) => s != null).map((s) => [s.id, schemeLabel(s)]));
+
+    const rows = buildHistoryRows(activeLogs, sessionDatesAll, exerciseNames, slotSchemes);
     if (format === "csv") downloadHistoryAsCsv("historial-entreno-lca.csv", rows);
     else downloadHistoryAsJson("historial-entreno-lca.json", rows);
   }

@@ -4,9 +4,27 @@ import { useState } from "react";
 import type { SessionSummary } from "./WorkoutSetFlow";
 import { AlternativeExercisePanel, type AlternativeCandidate } from "./AlternativeExercisePanel";
 import { SyncStatus } from "@/components/SyncStatus";
-import { db } from "@/lib/db";
+import { db, type LocalTemplateSlot } from "@/lib/db";
 import { buildHistoryRows, downloadHistoryAsCsv, downloadHistoryAsJson } from "@/lib/export";
 import { updateExerciseStatus, type SkipReason } from "@/lib/session-exercise";
+import { StrengthLevelUpdate } from "@/components/perfil/StrengthLevelUpdate";
+
+// Igual que en SlotCard.tsx — se duplica acá a propósito (misma convención
+// ya usada en el resto del código) en vez de acoplar un componente de export
+// a otro de UI solo por esta función de 8 líneas.
+function schemeLabel(slot: LocalTemplateSlot): string {
+  if (slot.block === "principal") {
+    const parts: string[] = [];
+    if (slot.sets != null && slot.reps != null) parts.push(`${slot.sets}×${slot.reps}`);
+    if (slot.pct_max != null) parts.push(`${slot.pct_max}%`);
+    if (slot.rpe_target != null) parts.push(`RPE ${slot.rpe_target}`);
+    return parts.join(" · ");
+  }
+  const parts: string[] = [];
+  if (slot.reps_or_time) parts.push(slot.reps_or_time);
+  if (slot.intensity_note) parts.push(slot.intensity_note);
+  return parts.join(" · ");
+}
 
 const ACTION_LABEL: Record<string, string> = {
   increase: "Subí",
@@ -54,6 +72,7 @@ export function ResumenView({
   onClose,
   omitted = [],
   volumeCompletion,
+  userId,
 }: {
   summary: SessionSummary[];
   sessionId: string | null;
@@ -61,6 +80,7 @@ export function ResumenView({
   onClose: () => void;
   omitted?: OmittedExerciseSummary[];
   volumeCompletion?: { completedSets: number; plannedSets: number; pct: number };
+  userId: string;
 }) {
   const [alternativesFor, setAlternativesFor] = useState<OmittedExerciseSummary | null>(null);
 
@@ -84,7 +104,14 @@ export function ResumenView({
     const exerciseIds = Array.from(new Set(logs.map((l) => l.exercise_id)));
     const exercises = await db.exercises.bulkGet(exerciseIds);
     const exerciseNames = Object.fromEntries(exercises.filter((e) => e != null).map((e) => [e.id, e.name]));
-    const rows = buildHistoryRows(logs, { [sessionId]: sessionDate }, exerciseNames);
+
+    const slotIds = Array.from(new Set(logs.map((l) => l.template_slot_id)));
+    const slots = await db.template_slots.bulkGet(slotIds);
+    const slotSchemes = Object.fromEntries(
+      slots.filter((s) => s != null).map((s) => [s.id, schemeLabel(s)])
+    );
+
+    const rows = buildHistoryRows(logs, { [sessionId]: sessionDate }, exerciseNames, slotSchemes);
     if (format === "csv") downloadHistoryAsCsv(`sesion-${sessionDate}.csv`, rows);
     else downloadHistoryAsJson(`sesion-${sessionDate}.json`, rows);
   }
@@ -168,6 +195,14 @@ export function ResumenView({
                 </div>
               )}
               {item.setsNote && <p className="text-sm text-amber-700 dark:text-amber-400">{item.setsNote}</p>}
+              {item.e1rmUpdated && (
+                <StrengthLevelUpdate
+                  userId={userId}
+                  exerciseName={item.exerciseName}
+                  oldE1rmKg={item.oldE1rm}
+                  newE1rmKg={item.newE1rm}
+                />
+              )}
             </>
           ) : (
             <p className="text-sm text-zinc-700 dark:text-zinc-300">

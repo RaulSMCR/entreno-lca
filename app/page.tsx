@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PwaStatus } from "@/components/PwaStatus";
+import { TrackingReminders } from "@/components/perfil/TrackingReminders";
 
 export default function Home() {
   const supabaseConfigured = Boolean(
@@ -20,6 +21,8 @@ export default function Home() {
 
         <PwaStatus />
 
+        <TrackingReminders />
+
         <div className="border-t border-zinc-200 pt-4 text-sm dark:border-zinc-800">
           <span className="font-medium text-zinc-500 dark:text-zinc-400">
             Supabase configurado:{" "}
@@ -27,6 +30,12 @@ export default function Home() {
           {supabaseConfigured ? "sí" : "no (completá .env.local)"}
         </div>
 
+        <Link
+          href="/perfil"
+          className="rounded-lg border border-zinc-300 px-4 py-2 text-center text-sm font-medium text-zinc-900 dark:border-zinc-700 dark:text-zinc-50"
+        >
+          Perfil
+        </Link>
         <div className="grid grid-cols-3 gap-2">
           <Link
             href="/equipos"

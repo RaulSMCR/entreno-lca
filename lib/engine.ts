@@ -35,6 +35,13 @@ export type UpdateE1rmResult = {
   bestSetE1rm: number;
 };
 
+// Techo de subida compartido por updateE1rm y updateE1rmFromCalibration: un
+// candidato nunca sube el e1RM más de maxIncreasePct por evento (sesión o test
+// de calibración), salvo que no hubiera e1RM previo.
+function capIncrease(current: number, candidate: number, maxIncreasePct: number): number {
+  return current === 0 ? candidate : Math.min(candidate, current * (1 + maxIncreasePct / 100));
+}
+
 // Tras una sesión: toma la mejor serie efectiva y, si supera al e1RM actual, lo
 // sube — pero nunca más de maxIncreasePct por sesión, para no perseguir un
 // outlier puntual. El registro de la fila en e1rm_estimates es responsabilidad
@@ -56,8 +63,43 @@ export function updateE1rm(
     return { e1rm: current, updated: false, bestSetE1rm };
   }
 
-  const e1rm = current === 0 ? bestSetE1rm : Math.min(bestSetE1rm, current * (1 + maxIncreasePct / 100));
-  return { e1rm, updated: true, bestSetE1rm };
+  return { e1rm: capIncrease(current, bestSetE1rm, maxIncreasePct), updated: true, bestSetE1rm };
+}
+
+// Fuente de un e1RM medido durante un protocolo de calibración (U-2), no una
+// sesión de entrenamiento normal — ver lib/calibration.ts para qué ejercicio usa
+// cuál. 'direct_1rm_protocol' es el Día 1RM (NSCA): dato de máxima confianza, se
+// escribe tal cual sin suavizar. Los tests de nRM sí se suavizan, con un tope
+// más generoso que una sesión suelta (15% en vez de 8%) porque vienen de un test
+// dedicado, no de una serie de trabajo cualquiera.
+export type CalibrationE1rmSource = "direct_1rm_protocol" | "five_rm_test" | "ten_rm_test" | "twelve_rm_test" | "fifteen_rm_test";
+
+const CALIBRATION_TEST_MAX_INCREASE_PCT = 15;
+
+// No hay escritura a template_slots acá ni en ningún otro lado: pct_max ya es
+// relativo al e1RM del ejercicio (ver targetLoad arriba), así que actualizar
+// exercises.e1rm_kg alcanza para que todos los slots que usan este ejercicio
+// reflejen la nueva carga en el próximo cálculo — no hace falta propagar nada.
+export function updateE1rmFromCalibration(
+  exercise: ExerciseE1rm,
+  measuredE1rmKg: number,
+  source: CalibrationE1rmSource
+): UpdateE1rmResult {
+  const current = exercise.e1rm_kg ?? 0;
+
+  if (source === "direct_1rm_protocol") {
+    return { e1rm: measuredE1rmKg, updated: true, bestSetE1rm: measuredE1rmKg };
+  }
+
+  if (measuredE1rmKg <= current) {
+    return { e1rm: current, updated: false, bestSetE1rm: measuredE1rmKg };
+  }
+
+  return {
+    e1rm: capIncrease(current, measuredE1rmKg, CALIBRATION_TEST_MAX_INCREASE_PCT),
+    updated: true,
+    bestSetE1rm: measuredE1rmKg,
+  };
 }
 
 export type SuggestNextLoadInput = {

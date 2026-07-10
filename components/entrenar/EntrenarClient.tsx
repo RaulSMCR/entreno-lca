@@ -185,6 +185,7 @@ export function EntrenarClient({ userId }: { userId: string }) {
         summary={result?.summary ?? []}
         sessionId={session?.id ?? null}
         sessionDate={session?.date ?? todayIso()}
+        userId={userId}
         omitted={result?.omitted}
         volumeCompletion={
           result?.volumeCompletion

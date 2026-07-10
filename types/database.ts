@@ -39,6 +39,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      body_weight_logs: {
+        Row: {
+          created_at: string
+          id: string
+          logged_at: string
+          note: string | null
+          source: string
+          updated_at: string
+          user_id: string
+          weight_kg: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logged_at?: string
+          note?: string | null
+          source?: string
+          updated_at?: string
+          user_id?: string
+          weight_kg: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logged_at?: string
+          note?: string | null
+          source?: string
+          updated_at?: string
+          user_id?: string
+          weight_kg?: number
+        }
+        Relationships: []
+      }
+      calibration_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          performed_at: string
+          rehab_phase_at_time: string | null
+          session_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          performed_at: string
+          rehab_phase_at_time?: string | null
+          session_type: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          performed_at?: string
+          rehab_phase_at_time?: string | null
+          session_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       day_templates: {
         Row: {
           code: string
@@ -226,6 +292,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      inbody_scans: {
+        Row: {
+          bmi: number | null
+          body_fat_pct: number | null
+          created_at: string
+          extracellular_water_l: number | null
+          fat_mass_kg: number | null
+          id: string
+          intracellular_water_l: number | null
+          lsi_lower_limb_pct: number | null
+          minerals_kg: number | null
+          muscle_left_arm_kg: number | null
+          muscle_left_leg_kg: number | null
+          muscle_mass_kg: number | null
+          muscle_right_arm_kg: number | null
+          muscle_right_leg_kg: number | null
+          muscle_trunk_kg: number | null
+          note: string | null
+          protein_kg: number | null
+          scanned_at: string
+          total_body_water_l: number | null
+          updated_at: string
+          user_id: string
+          visceral_fat_level: number | null
+          weight_kg: number | null
+        }
+        Insert: {
+          bmi?: number | null
+          body_fat_pct?: number | null
+          created_at?: string
+          extracellular_water_l?: number | null
+          fat_mass_kg?: number | null
+          id?: string
+          intracellular_water_l?: number | null
+          lsi_lower_limb_pct?: number | null
+          minerals_kg?: number | null
+          muscle_left_arm_kg?: number | null
+          muscle_left_leg_kg?: number | null
+          muscle_mass_kg?: number | null
+          muscle_right_arm_kg?: number | null
+          muscle_right_leg_kg?: number | null
+          muscle_trunk_kg?: number | null
+          note?: string | null
+          protein_kg?: number | null
+          scanned_at: string
+          total_body_water_l?: number | null
+          updated_at?: string
+          user_id?: string
+          visceral_fat_level?: number | null
+          weight_kg?: number | null
+        }
+        Update: {
+          bmi?: number | null
+          body_fat_pct?: number | null
+          created_at?: string
+          extracellular_water_l?: number | null
+          fat_mass_kg?: number | null
+          id?: string
+          intracellular_water_l?: number | null
+          lsi_lower_limb_pct?: number | null
+          minerals_kg?: number | null
+          muscle_left_arm_kg?: number | null
+          muscle_left_leg_kg?: number | null
+          muscle_mass_kg?: number | null
+          muscle_right_arm_kg?: number | null
+          muscle_right_leg_kg?: number | null
+          muscle_trunk_kg?: number | null
+          note?: string | null
+          protein_kg?: number | null
+          scanned_at?: string
+          total_body_water_l?: number | null
+          updated_at?: string
+          user_id?: string
+          visceral_fat_level?: number | null
+          weight_kg?: number | null
+        }
+        Relationships: []
       }
       session_exercise_statuses: {
         Row: {
@@ -503,6 +647,90 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tracking_reminders: {
+        Row: {
+          created_at: string
+          id: string
+          is_dismissed: boolean
+          last_done_at: string | null
+          next_due_at: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_dismissed?: boolean
+          last_done_at?: string | null
+          next_due_at?: string | null
+          type: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_dismissed?: boolean
+          last_done_at?: string | null
+          next_due_at?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          birth_date: string | null
+          created_at: string
+          full_name: string | null
+          height_cm: number | null
+          id: string
+          inbody_tracking_frequency_days: number
+          injury_context: string | null
+          rehab_phase: string | null
+          rm_retest_frequency_days: number
+          sex: string | null
+          sport: string
+          surgery_date: string | null
+          updated_at: string
+          weight_tracking_frequency_days: number
+        }
+        Insert: {
+          birth_date?: string | null
+          created_at?: string
+          full_name?: string | null
+          height_cm?: number | null
+          id?: string
+          inbody_tracking_frequency_days?: number
+          injury_context?: string | null
+          rehab_phase?: string | null
+          rm_retest_frequency_days?: number
+          sex?: string | null
+          sport?: string
+          surgery_date?: string | null
+          updated_at?: string
+          weight_tracking_frequency_days?: number
+        }
+        Update: {
+          birth_date?: string | null
+          created_at?: string
+          full_name?: string | null
+          height_cm?: number | null
+          id?: string
+          inbody_tracking_frequency_days?: number
+          injury_context?: string | null
+          rehab_phase?: string | null
+          rm_retest_frequency_days?: number
+          sex?: string | null
+          sport?: string
+          surgery_date?: string | null
+          updated_at?: string
+          weight_tracking_frequency_days?: number
+        }
+        Relationships: []
       }
       weekly_schedule: {
         Row: {
