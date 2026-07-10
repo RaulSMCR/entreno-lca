@@ -162,11 +162,46 @@ describe("estimateSessionTime", () => {
   });
 });
 
+describe("estimateSessionTime con un ejercicio repetido en dos slots", () => {
+  // Regresión: template A1 real repite un exercise_id en dos template_slots
+  // (slot_order 7 y 9). exerciseId NO es único por sesión; slotId sí.
+  const repeated = [
+    slot({
+      id: "slot-a",
+      slot_order: 6,
+      sets: 3,
+      reps: 6,
+      exercise: { id: "dominadas", name: "Dominadas", unit: "kg", block: "secundario" },
+    }),
+    slot({
+      id: "slot-b",
+      slot_order: 8,
+      sets: 2,
+      reps: 10,
+      exercise: { id: "dominadas", name: "Dominadas", unit: "kg", block: "secundario" },
+    }),
+  ];
+
+  it("produce una entrada por slot, no por ejercicio (slotId único, exerciseId repetido)", () => {
+    const estimate = estimateSessionTime(repeated);
+    expect(estimate.exercises).toHaveLength(2);
+    expect(estimate.exercises.map((e) => e.slotId)).toEqual(["slot-a", "slot-b"]);
+    expect(estimate.exercises[0].exerciseId).toBe(estimate.exercises[1].exerciseId);
+  });
+
+  it("getSessionProgress distingue ambos slots aunque compartan exerciseId", () => {
+    const estimate = estimateSessionTime(repeated);
+    const start = new Date();
+    const progress = getSessionProgress(estimate, ["slot-a"], [], start, start);
+    expect(progress.percentComplete).toBeCloseTo(1 / 2, 5);
+  });
+});
+
 describe("getSessionProgress", () => {
   it("devuelve el desvío correcto comparando elapsed vs expected_elapsed", () => {
     const estimate = estimateSessionTime(typicalSession);
     const start = new Date("2026-07-10T10:00:00Z");
-    const completedIds = [typicalSession[0].exercise_id, typicalSession[1].exercise_id];
+    const completedIds = [typicalSession[0].id, typicalSession[1].id];
     const expectedElapsedSoFar =
       estimate.warmupSeconds + estimate.exercises[0].totalSeconds + estimate.exercises[1].totalSeconds;
 
@@ -192,10 +227,10 @@ describe("getSessionProgress", () => {
   it("recalcula el estimado ajustado excluyendo ejercicios saltados", () => {
     const estimate = estimateSessionTime(typicalSession);
     const start = new Date();
-    const skippedId = typicalSession[5].exercise_id;
+    const skippedId = typicalSession[5].id;
     const progress = getSessionProgress(estimate, [], [skippedId], start, start);
     const withoutSkipped =
-      estimate.warmupSeconds + estimate.exercises.filter((e) => e.exerciseId !== skippedId).reduce((a, e) => a + e.totalSeconds, 0);
+      estimate.warmupSeconds + estimate.exercises.filter((e) => e.slotId !== skippedId).reduce((a, e) => a + e.totalSeconds, 0);
     expect(progress.adjustedEstimatedMinutes).toBe(Math.ceil(withoutSkipped / 60));
     expect(progress.adjustedEstimatedMinutes).toBeLessThan(estimate.estimatedMinutes);
   });
@@ -205,8 +240,8 @@ describe("getSessionProgress", () => {
     const start = new Date();
     const progress = getSessionProgress(
       estimate,
-      [typicalSession[0].exercise_id, typicalSession[1].exercise_id],
-      [typicalSession[2].exercise_id],
+      [typicalSession[0].id, typicalSession[1].id],
+      [typicalSession[2].id],
       start,
       start
     );

@@ -17,6 +17,7 @@ export function SetRow({
   sessionId,
   userId,
   exerciseId,
+  templateSlotId,
   setNumber,
   unit,
   loadOptions,
@@ -28,6 +29,10 @@ export function SetRow({
   sessionId: string;
   userId: string;
   exerciseId: string;
+  /** template_slots.id — identifica el slot dentro de la plantilla, ya que
+   *  exerciseId no es único por sesión (un ejercicio puede repetirse en más
+   *  de un slot). */
+  templateSlotId: string;
   setNumber: number;
   unit: "kg" | "seconds" | "meters" | "intervals" | "reps";
   loadOptions: number[];
@@ -77,6 +82,7 @@ export function SetRow({
       updated_at: now,
       session_id: sessionId,
       exercise_id: exerciseId,
+      template_slot_id: templateSlotId,
       set_number: setNumber,
       target_load_kg: existing?.target_load_kg ?? null,
       actual_load_kg: unit === "kg" ? load : null,

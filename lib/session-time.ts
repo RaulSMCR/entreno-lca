@@ -37,6 +37,10 @@ export const SESSION_BUFFERS = {
 } as const;
 
 export type ExerciseTimeEstimate = {
+  /** template_slots.id — identificador único del slot (exerciseId NO lo es: un
+   *  mismo ejercicio puede repetirse en más de un slot dentro de la misma
+   *  plantilla, confirmado en datos reales). */
+  slotId: string;
   exerciseId: string;
   exerciseName: string;
   objective: TrainingObjective;
@@ -87,6 +91,7 @@ export function estimateSessionTime(slots: SlotWithExercise[]): SessionTimeEstim
     const totalSeconds = setupSeconds + workSeconds + restSeconds + countdownSeconds;
 
     return {
+      slotId: slot.id,
       exerciseId: slot.exercise_id,
       exerciseName: slot.exercise.name,
       objective,
@@ -133,35 +138,34 @@ export type SessionProgress = {
 
 export function getSessionProgress(
   estimate: SessionTimeEstimate,
-  completedExerciseIds: string[],
-  skippedExerciseIds: string[],
+  completedSlotIds: string[],
+  skippedSlotIds: string[],
   sessionStartTime: Date,
   now: Date = new Date()
 ): SessionProgress {
   const elapsedSeconds = Math.max(0, Math.round((now.getTime() - sessionStartTime.getTime()) / 1000));
 
-  const doneIds = new Set([...completedExerciseIds, ...skippedExerciseIds]);
+  const doneIds = new Set([...completedSlotIds, ...skippedSlotIds]);
   const totalExercises = estimate.exercises.length;
   const percentComplete = totalExercises === 0 ? 0 : Math.min(1, doneIds.size / totalExercises);
 
   // Tiempo esperado transcurrido hasta este punto: calentamiento + la suma de
-  // los tiempos estimados de los ejercicios ya completados o saltados.
+  // los tiempos estimados de los ejercicios (slots) ya completados o saltados.
   const expectedElapsedSoFar =
-    estimate.warmupSeconds +
-    sum(estimate.exercises.filter((e) => doneIds.has(e.exerciseId)).map((e) => e.totalSeconds));
+    estimate.warmupSeconds + sum(estimate.exercises.filter((e) => doneIds.has(e.slotId)).map((e) => e.totalSeconds));
 
   const deviationSeconds = expectedElapsedSoFar - elapsedSeconds;
   const isAheadOfSchedule = deviationSeconds > 0;
 
   const estimatedRemainingSeconds = sum(
-    estimate.exercises.filter((e) => !doneIds.has(e.exerciseId)).map((e) => e.totalSeconds)
+    estimate.exercises.filter((e) => !doneIds.has(e.slotId)).map((e) => e.totalSeconds)
   );
   const estimatedEndTime = new Date(now.getTime() + estimatedRemainingSeconds * 1000);
 
-  const skippedSet = new Set(skippedExerciseIds);
+  const skippedSet = new Set(skippedSlotIds);
   const adjustedTotalSeconds =
     estimate.warmupSeconds +
-    sum(estimate.exercises.filter((e) => !skippedSet.has(e.exerciseId)).map((e) => e.totalSeconds));
+    sum(estimate.exercises.filter((e) => !skippedSet.has(e.slotId)).map((e) => e.totalSeconds));
   const adjustedEstimatedMinutes = Math.ceil(adjustedTotalSeconds / 60);
 
   return {

@@ -98,7 +98,7 @@ export function SessionBriefing({
         <div className="flex flex-col gap-2">
           {slots.map((slot) => {
             const objective = getObjectiveFromSlot(slot, slot.exercise.unit);
-            const exerciseEstimate = estimate?.exercises.find((e) => e.exerciseId === slot.exercise_id);
+            const exerciseEstimate = estimate?.exercises.find((e) => e.slotId === slot.id);
             const equipmentType = slot.exercise.equipment?.type;
             return (
               <div

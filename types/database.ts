@@ -232,8 +232,8 @@ export type Database = {
           actual_duration_seconds: number | null
           completed_at: string | null
           created_at: string
-          exercise_id: string
           execution_order: number | null
+          exercise_id: string
           id: string
           session_id: string
           sets_completed: number
@@ -242,7 +242,7 @@ export type Database = {
           skip_reason: string | null
           started_at: string | null
           status: string
-          template_slot_id: string | null
+          template_slot_id: string
           updated_at: string
           user_id: string
         }
@@ -250,8 +250,8 @@ export type Database = {
           actual_duration_seconds?: number | null
           completed_at?: string | null
           created_at?: string
-          exercise_id: string
           execution_order?: number | null
+          exercise_id: string
           id?: string
           session_id: string
           sets_completed?: number
@@ -260,7 +260,7 @@ export type Database = {
           skip_reason?: string | null
           started_at?: string | null
           status?: string
-          template_slot_id?: string | null
+          template_slot_id: string
           updated_at?: string
           user_id?: string
         }
@@ -268,8 +268,8 @@ export type Database = {
           actual_duration_seconds?: number | null
           completed_at?: string | null
           created_at?: string
-          exercise_id?: string
           execution_order?: number | null
+          exercise_id?: string
           id?: string
           session_id?: string
           sets_completed?: number
@@ -278,7 +278,7 @@ export type Database = {
           skip_reason?: string | null
           started_at?: string | null
           status?: string
-          template_slot_id?: string | null
+          template_slot_id?: string
           updated_at?: string
           user_id?: string
         }
@@ -369,6 +369,7 @@ export type Database = {
           synced_from_local: boolean
           target_load_kg: number | null
           target_reps: number | null
+          template_slot_id: string
           updated_at: string
           user_id: string
         }
@@ -387,6 +388,7 @@ export type Database = {
           synced_from_local?: boolean
           target_load_kg?: number | null
           target_reps?: number | null
+          template_slot_id: string
           updated_at?: string
           user_id?: string
         }
@@ -405,6 +407,7 @@ export type Database = {
           synced_from_local?: boolean
           target_load_kg?: number | null
           target_reps?: number | null
+          template_slot_id?: string
           updated_at?: string
           user_id?: string
         }
@@ -421,6 +424,13 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "set_logs_template_slot_id_fkey"
+            columns: ["template_slot_id"]
+            isOneToOne: false
+            referencedRelation: "template_slots"
             referencedColumns: ["id"]
           },
         ]

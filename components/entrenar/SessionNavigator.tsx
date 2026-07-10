@@ -3,7 +3,12 @@
 import { useState } from "react";
 import type { ExerciseStatus } from "@/lib/session-exercise";
 
+// Identificado por slotId (== template_slots.id), no por exerciseId: un mismo
+// ejercicio puede aparecer en más de un slot dentro de la misma plantilla
+// (confirmado en datos reales — template A1 repite un ejercicio en dos
+// slots), así que exerciseId no sirve como clave única dentro de una sesión.
 export type NavigatorExercise = {
+  slotId: string;
   exerciseId: string;
   exerciseName: string;
   scheme: string;
@@ -35,7 +40,7 @@ function findLinkedPartner(exercise: NavigatorExercise, all: NavigatorExercise[]
   return (
     all.find(
       (other) =>
-        other.exerciseId !== exercise.exerciseId &&
+        other.slotId !== exercise.slotId &&
         other.block === exercise.block &&
         Math.abs(other.originalOrder - exercise.originalOrder) === 1
     ) ?? null
@@ -44,7 +49,7 @@ function findLinkedPartner(exercise: NavigatorExercise, all: NavigatorExercise[]
 
 export function SessionNavigator({
   exercises,
-  activeExerciseId,
+  activeSlotId,
   executionOrder,
   remainingMinutes,
   onNavigate,
@@ -53,11 +58,11 @@ export function SessionNavigator({
   onFinishSession,
 }: {
   exercises: NavigatorExercise[];
-  activeExerciseId: string | null;
+  activeSlotId: string | null;
   executionOrder: string[];
   remainingMinutes: number;
-  onNavigate: (exerciseId: string) => void;
-  onRequestSkip: (exerciseId: string) => void;
+  onNavigate: (slotId: string) => void;
+  onRequestSkip: (slotId: string) => void;
   onReorder: (newPendingOrder: string[]) => void;
   onFinishSession: () => void;
 }) {
@@ -65,11 +70,9 @@ export function SessionNavigator({
   const [orderMode, setOrderMode] = useState<"recommended" | "free">("recommended");
   const [showCompleted, setShowCompleted] = useState(false);
 
-  const byId = new Map(exercises.map((e) => [e.exerciseId, e]));
+  const byId = new Map(exercises.map((e) => [e.slotId, e]));
   const total = exercises.length;
-  const activeIndex = activeExerciseId
-    ? executionOrder.findIndex((id) => id === activeExerciseId)
-    : -1;
+  const activeIndex = activeSlotId ? executionOrder.findIndex((id) => id === activeSlotId) : -1;
 
   const completedOrSkipped = exercises.filter((e) => e.status === "completed" || e.status === "skipped");
   const inProgressOrPartial = exercises.filter((e) => e.status === "in_progress" || e.status === "partial");
@@ -81,8 +84,8 @@ export function SessionNavigator({
 
   const pendingOrder =
     orderMode === "recommended"
-      ? [...pending].sort((a, b) => a.originalOrder - b.originalOrder).map((e) => e.exerciseId)
-      : executionOrder.filter((id) => pending.some((p) => p.exerciseId === id));
+      ? [...pending].sort((a, b) => a.originalOrder - b.originalOrder).map((e) => e.slotId)
+      : executionOrder.filter((id) => pending.some((p) => p.slotId === id));
 
   function move(index: number, direction: -1 | 1) {
     const next = [...pendingOrder];
@@ -95,7 +98,7 @@ export function SessionNavigator({
 
   const isCustomOrder = pendingOrder.some((id, i) => {
     const sorted = [...pending].sort((a, b) => a.originalOrder - b.originalOrder);
-    return sorted[i]?.exerciseId !== id;
+    return sorted[i]?.slotId !== id;
   });
 
   return (
@@ -178,14 +181,14 @@ export function SessionNavigator({
             <div className="flex-1 overflow-y-auto px-3 pb-3">
               {inProgressOrPartial.map((exercise) => (
                 <NavigatorRow
-                  key={exercise.exerciseId}
+                  key={exercise.slotId}
                   exercise={exercise}
-                  isActive={exercise.exerciseId === activeExerciseId}
+                  isActive={exercise.slotId === activeSlotId}
                   onNavigate={() => {
-                    onNavigate(exercise.exerciseId);
+                    onNavigate(exercise.slotId);
                     setOpen(false);
                   }}
-                  onSkip={() => onRequestSkip(exercise.exerciseId)}
+                  onSkip={() => onRequestSkip(exercise.slotId)}
                 />
               ))}
 
@@ -196,8 +199,8 @@ export function SessionNavigator({
                 const partnerStillAdjacent =
                   !partner ||
                   partner.status !== "pending" ||
-                  pendingOrder[index - 1] === partner.exerciseId ||
-                  pendingOrder[index + 1] === partner.exerciseId;
+                  pendingOrder[index - 1] === partner.slotId ||
+                  pendingOrder[index + 1] === partner.slotId;
 
                 return (
                   <div key={id}>
@@ -240,7 +243,7 @@ export function SessionNavigator({
                   </button>
                   {showCompleted &&
                     completedOrSkipped.map((exercise) => (
-                      <NavigatorRow key={exercise.exerciseId} exercise={exercise} isActive={false} readonly />
+                      <NavigatorRow key={exercise.slotId} exercise={exercise} isActive={false} readonly />
                     ))}
                 </div>
               )}

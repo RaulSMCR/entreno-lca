@@ -65,6 +65,14 @@ function schemeLabel(slot: SlotWithExercise): string {
 // listado plano que tenía SesionView), con navegador flotente (R-2),
 // technique sheet inicial (P), countdown/descanso no bloqueantes (T, vía
 // SlotCard) y skip modal (R-3).
+//
+// Identidad por template_slot_id, NO por exercise_id: un mismo ejercicio
+// puede repetirse en más de un slot dentro de la misma plantilla (confirmado
+// en datos reales — template A1 repite un ejercicio en slot_order 7 y 9),
+// así que exercise_id no es único por sesión. El único lugar que sigue
+// agrupando por exercise_id es el cierre de sesión (e1RM/sugerencia), porque
+// esa agregación ya es por-ejercicio en el modelo de set_logs heredado de la
+// Fase 1 (set_logs es único por session_id+exercise_id+set_number).
 export function WorkoutSetFlow({
   session,
   userId,
@@ -77,9 +85,9 @@ export function WorkoutSetFlow({
   const [finishing, setFinishing] = useState(false);
   const [voiceMatches, setVoiceMatches] = useState<Record<string, VoicePrefill>>({});
   const [techniqueAcknowledged, setTechniqueAcknowledged] = useState(false);
-  const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
+  const [activeSlotId, setActiveSlotId] = useState<string | null>(null);
   const [executionOrder, setExecutionOrder] = useState<string[] | null>(null);
-  const [skipTargetId, setSkipTargetId] = useState<string | null>(null);
+  const [skipTargetSlotId, setSkipTargetSlotId] = useState<string | null>(null);
   const [patterns, setPatterns] = useState<SkipPattern[]>([]);
   const [sessionStart] = useState(() => new Date());
 
@@ -126,14 +134,15 @@ export function WorkoutSetFlow({
     [slotsWithExercise]
   );
 
-  const statusByExercise = useMemo(() => new Map(statuses.map((s) => [s.exercise_id, s])), [statuses]);
+  const statusBySlot = useMemo(() => new Map(statuses.map((s) => [s.template_slot_id, s])), [statuses]);
 
   const navigatorExercises: NavigatorExercise[] = useMemo(
     () =>
       slotsWithExercise.map((slot) => {
-        const st = statusByExercise.get(slot.exercise_id);
-        const est = estimate?.exercises.find((e) => e.exerciseId === slot.exercise_id);
+        const st = statusBySlot.get(slot.id);
+        const est = estimate?.exercises.find((e) => e.slotId === slot.id);
         return {
+          slotId: slot.id,
           exerciseId: slot.exercise_id,
           exerciseName: slot.exercise.name,
           scheme: schemeLabel(slot),
@@ -143,38 +152,38 @@ export function WorkoutSetFlow({
           originalOrder: slot.slot_order,
         };
       }),
-    [slotsWithExercise, statusByExercise, estimate]
+    [slotsWithExercise, statusBySlot, estimate]
   );
 
   // Ajustes de estado durante el render (no en efectos) para inicializar el
-  // orden de ejecución y el ejercicio activo apenas hay datos disponibles:
-  // ambos son guardados (solo disparan una vez) y convergen sin loops.
+  // orden de ejecución y el slot activo apenas hay datos disponibles: ambos
+  // son guardados (solo disparan una vez) y convergen sin loops.
   if (executionOrder == null && slotsWithExercise.length > 0) {
-    setExecutionOrder(slotsWithExercise.map((s) => s.exercise_id));
+    setExecutionOrder(slotsWithExercise.map((s) => s.id));
   }
 
-  if (activeExerciseId == null) {
-    const order = executionOrder ?? slotsWithExercise.map((s) => s.exercise_id);
+  if (activeSlotId == null) {
+    const order = executionOrder ?? slotsWithExercise.map((s) => s.id);
     const next = order.find((id) => {
-      const st = statusByExercise.get(id)?.status ?? "pending";
+      const st = statusBySlot.get(id)?.status ?? "pending";
       return st === "pending" || st === "in_progress";
     });
-    if (next) setActiveExerciseId(next);
+    if (next) setActiveSlotId(next);
   }
 
   useEffect(() => {
-    if (!activeExerciseId) return;
-    const st = statusByExercise.get(activeExerciseId);
+    if (!activeSlotId) return;
+    const st = statusBySlot.get(activeSlotId);
     if (st && st.status === "pending") {
       updateExerciseStatus({
         sessionId: session.id,
-        exerciseId: activeExerciseId,
+        templateSlotId: activeSlotId,
         status: "in_progress",
         startedAt: new Date(),
       }).catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeExerciseId]);
+  }, [activeSlotId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -224,88 +233,88 @@ export function WorkoutSetFlow({
     });
   }
 
-  function advanceToNext(fromId: string) {
-    const order = executionOrder ?? slotsWithExercise.map((s) => s.exercise_id);
-    const idx = order.indexOf(fromId);
+  function advanceToNext(fromSlotId: string) {
+    const order = executionOrder ?? slotsWithExercise.map((s) => s.id);
+    const idx = order.indexOf(fromSlotId);
     const rest = idx >= 0 ? order.slice(idx + 1) : order;
     const next = rest.find((id) => {
-      const st = statusByExercise.get(id)?.status ?? "pending";
+      const st = statusBySlot.get(id)?.status ?? "pending";
       return st === "pending" || st === "in_progress";
     });
-    setActiveExerciseId(next ?? null);
+    setActiveSlotId(next ?? null);
   }
 
   async function handleExerciseComplete(slot: SlotWithExercise) {
     await updateExerciseStatus({
       sessionId: session.id,
-      exerciseId: slot.exercise_id,
+      templateSlotId: slot.id,
       status: "completed",
       setsCompleted: slot.sets ?? 1,
       completedAt: new Date(),
     });
-    advanceToNext(slot.exercise_id);
+    advanceToNext(slot.id);
   }
 
-  function handleNavigate(targetId: string) {
-    if (activeExerciseId && activeExerciseId !== targetId) {
-      const prevStatus = statusByExercise.get(activeExerciseId)?.status;
+  function handleNavigate(targetSlotId: string) {
+    if (activeSlotId && activeSlotId !== targetSlotId) {
+      const prevStatus = statusBySlot.get(activeSlotId)?.status;
       if (prevStatus === "in_progress") {
         const proceed = confirm("¿Dejás este ejercicio a medias para volver después?");
         if (!proceed) return;
-        updateExerciseStatus({ sessionId: session.id, exerciseId: activeExerciseId, status: "partial" }).catch(() => {});
+        updateExerciseStatus({ sessionId: session.id, templateSlotId: activeSlotId, status: "partial" }).catch(() => {});
       }
     }
-    setActiveExerciseId(targetId);
+    setActiveSlotId(targetSlotId);
   }
 
   function handleReorder(newPendingOrder: string[]) {
     setExecutionOrder((prev) => {
-      const base = prev ?? slotsWithExercise.map((s) => s.exercise_id);
+      const base = prev ?? slotsWithExercise.map((s) => s.id);
       const pendingSet = new Set(newPendingOrder);
       let cursor = 0;
       return base.map((id) => (pendingSet.has(id) ? newPendingOrder[cursor++] : id));
     });
   }
 
-  const skipTarget = skipTargetId ? slotsWithExercise.find((s) => s.exercise_id === skipTargetId) : undefined;
+  const skipTarget = skipTargetSlotId ? slotsWithExercise.find((s) => s.id === skipTargetSlotId) : undefined;
   const skipTargetLogs = useLiveQuery(
     async () => {
-      if (!skipTargetId) return [];
+      if (!skipTarget) return [];
       const all = await db.set_logs.where("session_id").equals(session.id).toArray();
-      return all.filter((l) => l.exercise_id === skipTargetId && l._deleted !== 1);
+      return all.filter((l) => l.template_slot_id === skipTarget.id && l._deleted !== 1);
     },
-    [skipTargetId, session.id],
+    [skipTarget?.id, session.id],
     []
   );
 
   async function handleSkip(reason: SkipReason, note?: string) {
-    if (!skipTargetId) return;
+    if (!skipTargetSlotId) return;
     await updateExerciseStatus({
       sessionId: session.id,
-      exerciseId: skipTargetId,
+      templateSlotId: skipTargetSlotId,
       status: "skipped",
       skipReason: reason,
       skipNote: note ?? null,
       setsCompleted: skipTargetLogs.length,
       completedAt: new Date(),
     });
-    const skippedId = skipTargetId;
-    setSkipTargetId(null);
-    if (activeExerciseId === skippedId) advanceToNext(skippedId);
+    const skippedId = skipTargetSlotId;
+    setSkipTargetSlotId(null);
+    if (activeSlotId === skippedId) advanceToNext(skippedId);
   }
 
   async function handleMarkPartial() {
-    if (!skipTargetId) return;
+    if (!skipTargetSlotId) return;
     await updateExerciseStatus({
       sessionId: session.id,
-      exerciseId: skipTargetId,
+      templateSlotId: skipTargetSlotId,
       status: "partial",
       setsCompleted: skipTargetLogs.length,
       completedAt: new Date(),
     });
-    const partialId = skipTargetId;
-    setSkipTargetId(null);
-    if (activeExerciseId === partialId) advanceToNext(partialId);
+    const partialId = skipTargetSlotId;
+    setSkipTargetSlotId(null);
+    if (activeSlotId === partialId) advanceToNext(partialId);
   }
 
   async function handleFinish() {
@@ -316,11 +325,28 @@ export function WorkoutSetFlow({
       const now = nowIso();
       const summary: SessionSummary[] = [];
 
+      // e1RM se calcula por ejercicio (agrega todas sus series, sin importar
+      // el slot), pero el esquema objetivo (reps/RPE) para la sugerencia
+      // necesita UN slot concreto: si el ejercicio aparece en más de uno
+      // (caso real: template A1), se elige el que tiene más series logueadas
+      // esta sesión — el que realmente se trabajó.
+      const logCountBySlot = new Map<string, number>();
+      for (const l of allLogs) {
+        if (l._deleted === 1) continue;
+        logCountBySlot.set(l.template_slot_id, (logCountBySlot.get(l.template_slot_id) ?? 0) + 1);
+      }
+
       for (const exerciseId of exerciseIds) {
         const exercise = await db.exercises.get(exerciseId);
         if (!exercise) continue;
         const logsForExercise = allLogs.filter((l) => l.exercise_id === exerciseId && l._deleted !== 1);
-        const slot = slotsWithExercise.find((s) => s.exercise_id === exerciseId);
+        const candidateSlots = slotsWithExercise.filter((s) => s.exercise_id === exerciseId);
+        const slot =
+          candidateSlots.length <= 1
+            ? candidateSlots[0]
+            : [...candidateSlots].sort(
+                (a, b) => (logCountBySlot.get(b.id) ?? 0) - (logCountBySlot.get(a.id) ?? 0)
+              )[0];
 
         const skipHistory = await getSkipHistory(exerciseId, 6);
         const detected = detectSkipPatterns(skipHistory, { id: exerciseId, name: exercise.name });
@@ -401,6 +427,7 @@ export function WorkoutSetFlow({
       const omitted: OmittedExerciseSummary[] = finalStatuses
         .filter((s) => s.status === "partial" || s.status === "skipped")
         .map((s) => ({
+          id: s.id,
           exerciseId: s.exercise_id,
           exerciseName: exerciseNameById.get(s.exercise_id) ?? "Ejercicio",
           status: s.status as "partial" | "skipped",
@@ -434,18 +461,18 @@ export function WorkoutSetFlow({
     }
   }
 
-  const activeSlot = activeExerciseId ? slotsWithExercise.find((s) => s.exercise_id === activeExerciseId) : undefined;
+  const activeSlot = activeSlotId ? slotsWithExercise.find((s) => s.id === activeSlotId) : undefined;
   const firstSlot = slotsWithExercise[0];
   const techniqueSheetSlot = !techniqueAcknowledged ? firstSlot : undefined;
   const progress = estimate
     ? getSessionProgress(
         estimate,
-        navigatorExercises.filter((e) => e.status === "completed").map((e) => e.exerciseId),
-        navigatorExercises.filter((e) => e.status === "skipped").map((e) => e.exerciseId),
+        navigatorExercises.filter((e) => e.status === "completed").map((e) => e.slotId),
+        navigatorExercises.filter((e) => e.status === "skipped").map((e) => e.slotId),
         sessionStart
       )
     : null;
-  const activeIndex = activeSlot ? navigatorExercises.findIndex((e) => e.exerciseId === activeSlot.exercise_id) : -1;
+  const activeIndex = activeSlot ? navigatorExercises.findIndex((e) => e.slotId === activeSlot.id) : -1;
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-4 pb-24">
@@ -464,7 +491,7 @@ export function WorkoutSetFlow({
             </span>
             <button
               type="button"
-              onClick={() => setSkipTargetId(activeSlot.exercise_id)}
+              onClick={() => setSkipTargetSlotId(activeSlot.id)}
               className="min-h-11 rounded-lg border border-zinc-300 px-3 text-sm dark:border-zinc-700"
             >
               ⏭ Omitir ejercicio
@@ -510,7 +537,7 @@ export function WorkoutSetFlow({
           setsCompleted={skipTargetLogs.length}
           setsPlanned={skipTarget.sets ?? 1}
           onSkip={handleSkip}
-          onCancel={() => setSkipTargetId(null)}
+          onCancel={() => setSkipTargetSlotId(null)}
           onMarkPartial={handleMarkPartial}
         />
       )}
@@ -518,11 +545,11 @@ export function WorkoutSetFlow({
       {slotsWithExercise.length > 0 && (
         <SessionNavigator
           exercises={navigatorExercises}
-          activeExerciseId={activeExerciseId}
-          executionOrder={executionOrder ?? slotsWithExercise.map((s) => s.exercise_id)}
+          activeSlotId={activeSlotId}
+          executionOrder={executionOrder ?? slotsWithExercise.map((s) => s.id)}
           remainingMinutes={progress ? Math.round(progress.estimatedRemainingSeconds / 60) : 0}
           onNavigate={handleNavigate}
-          onRequestSkip={(id) => setSkipTargetId(id)}
+          onRequestSkip={(id) => setSkipTargetSlotId(id)}
           onReorder={handleReorder}
           onFinishSession={handleFinish}
         />

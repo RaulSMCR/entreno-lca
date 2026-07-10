@@ -50,14 +50,20 @@ export function SlotCard({
     async () => (exercise?.equipment_id ? db.equipment.get(exercise.equipment_id) : undefined),
     [exercise?.equipment_id]
   );
+  // Filtrado por template_slot_id, no por exercise_id: un mismo ejercicio
+  // puede repetirse en más de un slot dentro de la misma plantilla, y
+  // exercise_id por sí solo no distingue esas series.
   const logs = useLiveQuery(
     async () => {
       const all = await db.set_logs.where("session_id").equals(sessionId).toArray();
-      return all.filter((l) => l.exercise_id === slot.exercise_id && l._deleted !== 1).sort((a, b) => a.set_number - b.set_number);
+      return all.filter((l) => l.template_slot_id === slot.id && l._deleted !== 1).sort((a, b) => a.set_number - b.set_number);
     },
-    [sessionId, slot.exercise_id],
+    [sessionId, slot.id],
     []
   );
+  // A propósito sigue siendo por exercise_id (no por slot): sirve para
+  // precargar valores por defecto con lo último logueado de este ejercicio,
+  // sin importar en qué slot o sesión haya sido.
   const lastHistoricalLog = useLiveQuery(
     async () => {
       const all = await db.set_logs.where("exercise_id").equals(slot.exercise_id).toArray();
@@ -149,6 +155,7 @@ export function SlotCard({
               sessionId={sessionId}
               userId={userId}
               exerciseId={slot.exercise_id}
+              templateSlotId={slot.id}
               setNumber={setNumber}
               unit={exercise.unit as "kg" | "seconds" | "meters" | "intervals" | "reps"}
               loadOptions={loadOptions}

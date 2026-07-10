@@ -6,6 +6,11 @@
 // - detectSkipPatterns recibe el { id, name } del ejercicio explícito, porque
 //   SkipRecord no lo incluye (viene de session_exercise_statuses, que no
 //   duplica datos de exercises) y el resultado sí necesita exerciseId/Name.
+// - Un mismo exercise_id puede aparecer en más de un template_slot dentro de
+//   la misma sesión (confirmado en datos reales — template A1 repite un
+//   ejercicio en dos slots): getSkipHistory combina esas filas a UN registro
+//   por sesión, para no inflar el conteo de ocurrencias que usan los umbrales
+//   de detección de patrones.
 
 import { db, type LocalSession } from "./db";
 import type { ExerciseStatus, SkipReason } from "./session-exercise";
@@ -20,6 +25,16 @@ export type SkipRecord = {
   setsPlanned: number;
 };
 
+// Al combinar varias filas de una misma sesión, se prioriza el estado más
+// "notable" (skipped/partial pesan más que completed) como representante.
+const STATUS_MERGE_PRIORITY: Record<ExerciseStatus, number> = {
+  skipped: 0,
+  partial: 1,
+  in_progress: 2,
+  pending: 3,
+  completed: 4,
+};
+
 export async function getSkipHistory(exerciseId: string, lookbackSessions: number = 6): Promise<SkipRecord[]> {
   const statuses = await db.session_exercise_statuses.where("exercise_id").equals(exerciseId).toArray();
   if (statuses.length === 0) return [];
@@ -30,9 +45,10 @@ export async function getSkipHistory(exerciseId: string, lookbackSessions: numbe
     sessions.filter((s): s is LocalSession => !!s).map((s) => [s.id, s])
   );
 
-  return statuses
-    .filter((s) => s._deleted !== 1 && sessionById.has(s.session_id))
-    .map((s) => ({
+  const bySession = new Map<string, SkipRecord>();
+  for (const s of statuses) {
+    if (s._deleted === 1 || !sessionById.has(s.session_id)) continue;
+    const record: SkipRecord = {
       sessionId: s.session_id,
       sessionDate: sessionById.get(s.session_id)!.date,
       status: s.status as ExerciseStatus,
@@ -40,7 +56,20 @@ export async function getSkipHistory(exerciseId: string, lookbackSessions: numbe
       skipNote: s.skip_note,
       setsCompleted: s.sets_completed,
       setsPlanned: s.sets_planned,
-    }))
+    };
+
+    const prev = bySession.get(s.session_id);
+    if (!prev) {
+      bySession.set(s.session_id, record);
+      continue;
+    }
+    const winner = STATUS_MERGE_PRIORITY[record.status] <= STATUS_MERGE_PRIORITY[prev.status] ? record : prev;
+    winner.setsCompleted = prev.setsCompleted + record.setsCompleted;
+    winner.setsPlanned = prev.setsPlanned + record.setsPlanned;
+    bySession.set(s.session_id, winner);
+  }
+
+  return Array.from(bySession.values())
     .sort((a, b) => b.sessionDate.localeCompare(a.sessionDate))
     .slice(0, lookbackSessions);
 }

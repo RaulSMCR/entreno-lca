@@ -16,9 +16,12 @@ export type SkipReason =
 
 export type SessionExerciseStatus = LocalSessionExerciseStatus;
 
-// Idempotente: si ya existe una fila para (session_id, exercise_id) no la
-// duplica ni la pisa (respeta el progreso si se llama de nuevo al reabrir la
-// sesión).
+// Idempotente: si ya existe una fila para (session_id, template_slot_id) no
+// la duplica ni la pisa (respeta el progreso si se llama de nuevo al reabrir
+// la sesión). La clave es el slot, no el ejercicio: un mismo exercise_id
+// puede aparecer en más de un template_slot dentro de la misma plantilla
+// (confirmado en datos reales — template A1 repite un ejercicio en dos
+// slots), así que exercise_id no sirve como identificador único por sesión.
 export async function initSessionExerciseStatuses(params: {
   sessionId: string;
   userId: string;
@@ -26,11 +29,12 @@ export async function initSessionExerciseStatuses(params: {
 }): Promise<void> {
   const { sessionId, userId, slots } = params;
   const existing = await db.session_exercise_statuses.where("session_id").equals(sessionId).toArray();
-  const existingExerciseIds = new Set(existing.map((s) => s.exercise_id));
+  const seenSlotIds = new Set(existing.map((s) => s.template_slot_id));
   const now = nowIso();
 
   for (const slot of slots) {
-    if (existingExerciseIds.has(slot.exercise_id)) continue;
+    if (seenSlotIds.has(slot.id)) continue;
+    seenSlotIds.add(slot.id);
     const row: LocalSessionExerciseStatus = {
       id: newId(),
       created_at: now,
@@ -57,7 +61,7 @@ export async function initSessionExerciseStatuses(params: {
 
 export async function updateExerciseStatus(params: {
   sessionId: string;
-  exerciseId: string;
+  templateSlotId: string;
   status: ExerciseStatus;
   skipReason?: SkipReason | null;
   skipNote?: string | null;
@@ -68,11 +72,11 @@ export async function updateExerciseStatus(params: {
 }): Promise<void> {
   const existing = (
     await db.session_exercise_statuses.where("session_id").equals(params.sessionId).toArray()
-  ).find((s) => s.exercise_id === params.exerciseId);
+  ).find((s) => s.template_slot_id === params.templateSlotId);
 
   if (!existing) {
     throw new Error(
-      `No hay session_exercise_statuses para exercise ${params.exerciseId} en la sesión ${params.sessionId}. ` +
+      `No hay session_exercise_statuses para el slot ${params.templateSlotId} en la sesión ${params.sessionId}. ` +
         `Llamá initSessionExerciseStatuses al iniciar la sesión.`
     );
   }

@@ -72,6 +72,19 @@ class AppDB extends Dexie {
       e1rm_estimates: "id, exercise_id, _dirty",
       session_exercise_statuses: "id, session_id, exercise_id, _dirty",
     });
+    // v3: set_logs suma template_slot_id — exercise_id no identifica un slot
+    // (un mismo ejercicio puede repetirse en más de un slot de la plantilla).
+    this.version(3).stores({
+      equipment: "id, _dirty",
+      exercises: "id, _dirty",
+      day_templates: "id, code, _dirty",
+      template_slots: "id, day_template_id, _dirty",
+      weekly_schedule: "id, weekday, _dirty",
+      sessions: "id, date, _dirty",
+      set_logs: "id, session_id, exercise_id, template_slot_id, _dirty",
+      e1rm_estimates: "id, exercise_id, _dirty",
+      session_exercise_statuses: "id, session_id, exercise_id, _dirty",
+    });
   }
 }
 

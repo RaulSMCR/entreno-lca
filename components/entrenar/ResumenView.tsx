@@ -29,6 +29,9 @@ const SKIP_REASON_LABEL: Record<SkipReason, string> = {
 };
 
 export type OmittedExerciseSummary = {
+  /** session_exercise_statuses.id — exerciseId no es único por sesión: un
+   *  mismo ejercicio puede repetirse en más de un slot de la plantilla. */
+  id: string;
   exerciseId: string;
   exerciseName: string;
   status: "partial" | "skipped";
@@ -88,7 +91,7 @@ export function ResumenView({
           )}
           <div className="flex flex-col gap-2">
             {omitted.map((o) => (
-              <div key={o.exerciseId} className="flex items-center justify-between gap-2 text-sm">
+              <div key={o.id} className="flex items-center justify-between gap-2 text-sm">
                 <div>
                   <span className="font-medium text-amber-900 dark:text-amber-100">{o.exerciseName}</span>
                   <span className="text-amber-800 dark:text-amber-200">
