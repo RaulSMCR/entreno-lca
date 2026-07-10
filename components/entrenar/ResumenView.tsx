@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import type { SessionSummary } from "./WorkoutSetFlow";
+import { AlternativeExercisePanel, type AlternativeCandidate } from "./AlternativeExercisePanel";
 import { SyncStatus } from "@/components/SyncStatus";
 import { db } from "@/lib/db";
 import { buildHistoryRows, downloadHistoryAsCsv, downloadHistoryAsJson } from "@/lib/export";
-import type { SkipReason } from "@/lib/session-exercise";
+import { updateExerciseStatus, type SkipReason } from "@/lib/session-exercise";
 
 const ACTION_LABEL: Record<string, string> = {
   increase: "Subí",
@@ -34,12 +36,15 @@ export type OmittedExerciseSummary = {
   id: string;
   exerciseId: string;
   exerciseName: string;
+  templateSlotId: string;
   status: "partial" | "skipped";
   skipReason: SkipReason | null;
   skipNote: string | null;
   setsCompleted: number;
   setsPlanned: number;
   hasPattern: boolean;
+  /** R-4: candidatos del mismo bloque en la plantilla, para "buscar alternativa". */
+  alternativeCandidates: AlternativeCandidate[];
 };
 
 export function ResumenView({
@@ -57,6 +62,22 @@ export function ResumenView({
   omitted?: OmittedExerciseSummary[];
   volumeCompletion?: { completedSets: number; plannedSets: number; pct: number };
 }) {
+  const [alternativesFor, setAlternativesFor] = useState<OmittedExerciseSummary | null>(null);
+
+  async function suggestAlternative(item: OmittedExerciseSummary, candidateName: string | null) {
+    if (!sessionId) return;
+    const note = candidateName
+      ? `Sugerencia: reemplazar por "${candidateName}"`
+      : "Sugerido buscar un ejercicio alternativo";
+    const combinedNote = item.skipNote ? `${item.skipNote} · ${note}` : note;
+    await updateExerciseStatus({
+      sessionId,
+      templateSlotId: item.templateSlotId,
+      status: item.status,
+      skipNote: combinedNote,
+    });
+  }
+
   async function exportSession(format: "csv" | "json") {
     if (!sessionId) return;
     const logs = await db.set_logs.where("session_id").equals(sessionId).toArray();
@@ -100,6 +121,15 @@ export function ResumenView({
                     {o.skipReason ? ` · ${SKIP_REASON_LABEL[o.skipReason]}` : ""}
                   </span>
                   {o.skipNote && <p className="text-xs text-amber-800 dark:text-amber-200">“{o.skipNote}”</p>}
+                  {o.hasPattern && (
+                    <button
+                      type="button"
+                      onClick={() => setAlternativesFor(o)}
+                      className="mt-1 block text-xs font-medium text-amber-900 underline dark:text-amber-100"
+                    >
+                      Buscar ejercicio alternativo
+                    </button>
+                  )}
                 </div>
                 {o.hasPattern && (
                   <span className="shrink-0 rounded-full bg-amber-200 px-2 py-0.5 text-xs text-amber-900 dark:bg-amber-900 dark:text-amber-100">
@@ -118,6 +148,7 @@ export function ResumenView({
           className="flex flex-col gap-1 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
         >
           <p className="font-medium text-zinc-900 dark:text-zinc-50">{item.exerciseName}</p>
+          {item.slotLabel && <p className="text-xs text-zinc-500 dark:text-zinc-400">{item.slotLabel}</p>}
 
           {item.kind === "load" ? (
             <>
@@ -180,6 +211,15 @@ export function ResumenView({
       >
         Listo
       </button>
+
+      {alternativesFor && (
+        <AlternativeExercisePanel
+          exerciseName={alternativesFor.exerciseName}
+          candidates={alternativesFor.alternativeCandidates}
+          onClose={() => setAlternativesFor(null)}
+          onSuggestToTrainer={(candidateName) => suggestAlternative(alternativesFor, candidateName)}
+        />
+      )}
     </div>
   );
 }

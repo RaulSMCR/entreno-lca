@@ -85,6 +85,20 @@ class AppDB extends Dexie {
       e1rm_estimates: "id, exercise_id, _dirty",
       session_exercise_statuses: "id, session_id, exercise_id, _dirty",
     });
+    // v4: session_exercise_statuses también indexa template_slot_id — el
+    // historial de patrones (lib/skip-patterns.ts) ahora consulta por slot
+    // (propósito de entrenamiento), no por exercise_id.
+    this.version(4).stores({
+      equipment: "id, _dirty",
+      exercises: "id, _dirty",
+      day_templates: "id, code, _dirty",
+      template_slots: "id, day_template_id, _dirty",
+      weekly_schedule: "id, weekday, _dirty",
+      sessions: "id, date, _dirty",
+      set_logs: "id, session_id, exercise_id, template_slot_id, _dirty",
+      e1rm_estimates: "id, exercise_id, _dirty",
+      session_exercise_statuses: "id, session_id, exercise_id, template_slot_id, _dirty",
+    });
   }
 }
 

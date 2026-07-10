@@ -21,6 +21,10 @@ export function EntrenarClient({ userId }: { userId: string }) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [readiness, setReadiness] = useState<number | null>(null);
   const [patterns, setPatterns] = useState<SkipPattern[]>([]);
+  // R-4: "Mover al inicio de la sesión" — solo afecta esta sesión (no
+  // persiste al template_slots real). Por slotId, no exerciseId: el mismo
+  // ejercicio puede repetirse en más de un slot con propósitos distintos.
+  const [prioritySlotId, setPrioritySlotId] = useState<string | null>(null);
 
   const templates = useLiveQuery(() => db.day_templates.orderBy("code").toArray(), [], []);
 
@@ -85,9 +89,21 @@ export function EntrenarClient({ userId }: { userId: string }) {
     [] as SlotWithExercise[]
   );
 
+  // Si hay un ejercicio priorizado (R-4: "mover al inicio de la sesión"), se
+  // adelanta acá para que tanto el estimado como la lista mostrada y el
+  // orden inicial de la sesión reflejen el cambio de forma consistente.
+  const orderedSlots = useMemo(() => {
+    if (!prioritySlotId) return slotsWithExercise;
+    const idx = slotsWithExercise.findIndex((s) => s.id === prioritySlotId);
+    if (idx <= 0) return slotsWithExercise;
+    const copy = [...slotsWithExercise];
+    const [moved] = copy.splice(idx, 1);
+    return [moved, ...copy];
+  }, [slotsWithExercise, prioritySlotId]);
+
   const estimate = useMemo(
-    () => (slotsWithExercise.length > 0 ? estimateSessionTime(slotsWithExercise) : null),
-    [slotsWithExercise]
+    () => (orderedSlots.length > 0 ? estimateSessionTime(orderedSlots) : null),
+    [orderedSlots]
   );
 
   useEffect(() => {
@@ -98,7 +114,7 @@ export function EntrenarClient({ userId }: { userId: string }) {
         return;
       }
       const detected = await analyzeSessionPatterns(
-        slotsWithExercise.map((s) => ({ exercise_id: s.exercise_id, block: s.block })),
+        slotsWithExercise.map((s) => ({ id: s.id, exercise_id: s.exercise_id, block: s.block })),
         slotsWithExercise.map((s) => ({
           id: s.exercise_id,
           name: s.exercise.name,
@@ -130,11 +146,11 @@ export function EntrenarClient({ userId }: { userId: string }) {
     };
     await db.sessions.put(newSession);
 
-    if (templateId && slotsWithExercise.length > 0) {
+    if (templateId && orderedSlots.length > 0) {
       await initSessionExerciseStatuses({
         sessionId: newSession.id,
         userId,
-        slots: slotsWithExercise.map((s) => ({ id: s.id, exercise_id: s.exercise_id, sets: s.sets })),
+        slots: orderedSlots.map((s) => ({ id: s.id, exercise_id: s.exercise_id, sets: s.sets })),
       });
     }
 
@@ -153,7 +169,14 @@ export function EntrenarClient({ userId }: { userId: string }) {
   }
 
   if (view === "sesion" && session) {
-    return <WorkoutSetFlow session={session} userId={userId} onFinish={handleFinish} />;
+    return (
+      <WorkoutSetFlow
+        session={session}
+        userId={userId}
+        prioritySlotId={prioritySlotId}
+        onFinish={handleFinish}
+      />
+    );
   }
 
   if (view === "resumen") {
@@ -185,14 +208,18 @@ export function EntrenarClient({ userId }: { userId: string }) {
     <SessionBriefing
       templates={templates ?? []}
       selectedTemplateId={selectedTemplateId}
-      onTemplateChange={setSelectedTemplateId}
+      onTemplateChange={(id) => {
+        setSelectedTemplateId(id);
+        setPrioritySlotId(null);
+      }}
       templateTitle={selectedTemplate ? `${selectedTemplate.code} — ${selectedTemplate.title}` : null}
       templateFocus={selectedTemplate?.focus ?? null}
-      slots={slotsWithExercise}
+      slots={orderedSlots}
       estimate={estimate}
       patterns={patterns}
       readiness={readiness}
       onReadinessChange={setReadiness}
+      onMoveToStart={setPrioritySlotId}
       onStart={() => startSession(selectedTemplateId || null)}
     />
   );

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SyncStatus } from "@/components/SyncStatus";
 import type { LocalDayTemplate } from "@/lib/db";
 import type { SessionTimeEstimate, SlotWithExercise } from "@/lib/session-time";
-import type { SkipPattern } from "@/lib/skip-patterns";
+import type { RecommendedAction, SkipPattern } from "@/lib/skip-patterns";
 import { getObjectiveFromSlot, type TrainingObjective } from "@/lib/training-theory";
+import { AlternativeExercisePanel } from "./AlternativeExercisePanel";
 
 const OBJECTIVE_LABEL: Record<TrainingObjective, string> = {
   strength: "Fuerza",
@@ -52,6 +53,7 @@ export function SessionBriefing({
   patterns,
   readiness,
   onReadinessChange,
+  onMoveToStart,
   onStart,
 }: {
   templates: LocalDayTemplate[];
@@ -64,10 +66,43 @@ export function SessionBriefing({
   patterns: SkipPattern[];
   readiness: number | null;
   onReadinessChange: (r: number | null) => void;
+  /** R-4: "Mover al inicio de la sesión" — el padre decide el orden real. Por
+   *  slotId, no exerciseId: el mismo ejercicio puede repetirse en más de un
+   *  slot con propósitos distintos (fuerza vs volumen). */
+  onMoveToStart: (slotId: string) => void;
   onStart: () => void;
 }) {
   const criticalPatterns = patterns.filter((p) => p.severity === "critical");
   const otherPatterns = patterns.filter((p) => p.severity !== "critical");
+
+  const [toast, setToast] = useState<string | null>(null);
+  const [alternativesFor, setAlternativesFor] = useState<SkipPattern | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  function handlePatternAction(pattern: SkipPattern, action: RecommendedAction) {
+    if (action.actionType === "reorder_in_session") {
+      onMoveToStart(pattern.slotId);
+      setToast(`✅ ${pattern.exerciseName} se hará primero hoy`);
+    } else if (action.actionType === "suggest_alternative") {
+      setAlternativesFor(pattern);
+    }
+  }
+
+  const alternativeCandidates = alternativesFor
+    ? (() => {
+        const patternSlot = slots.find((s) => s.id === alternativesFor.slotId);
+        if (!patternSlot) return [];
+        const seen = new Set<string>([alternativesFor.exerciseId]);
+        return slots
+          .filter((s) => s.block === patternSlot.block && !seen.has(s.exercise_id) && seen.add(s.exercise_id))
+          .map((s) => ({ id: s.exercise_id, name: s.exercise.name }));
+      })()
+    : [];
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-4 pb-24">
@@ -79,11 +114,19 @@ export function SessionBriefing({
         <SyncStatus />
       </div>
 
+      {toast && (
+        <div className="rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100">
+          {toast}
+        </div>
+      )}
+
       {criticalPatterns.map((p) => (
-        <CriticalPatternBanner key={`${p.exerciseId}-${p.type}`} pattern={p} />
+        <CriticalPatternBanner key={`${p.exerciseId}-${p.type}`} pattern={p} onAction={handlePatternAction} />
       ))}
 
-      {otherPatterns.length > 0 && <CollapsiblePatternBanner patterns={otherPatterns} />}
+      {otherPatterns.length > 0 && (
+        <CollapsiblePatternBanner patterns={otherPatterns} onAction={handlePatternAction} />
+      )}
 
       {estimate && slots.length > 0 && (
         <div className="rounded-2xl border border-zinc-200 bg-white p-4 text-center dark:border-zinc-800 dark:bg-zinc-950">
@@ -182,33 +225,50 @@ export function SessionBriefing({
       >
         ▶ Iniciar sesión
       </button>
+
+      {alternativesFor && (
+        <AlternativeExercisePanel
+          exerciseName={alternativesFor.exerciseName}
+          candidates={alternativeCandidates}
+          onClose={() => setAlternativesFor(null)}
+        />
+      )}
     </div>
   );
 }
 
-// Las acciones (reorder_in_session / suggest_alternative / ...) se muestran
-// como referencia acá; se vuelven interactivas dentro de la sesión activa
-// (SessionNavigator ya tiene el orden de ejecución para poder aplicarlas).
-function CriticalPatternBanner({ pattern }: { pattern: SkipPattern }) {
+// reorder_in_session y suggest_alternative son interactivos (ver
+// handlePatternAction); el resto (adjust_load, consult_professional,
+// change_schedule) queda como referencia informativa — adjust_load ya se
+// aplica solo al cerrar la sesión (lib/engine.ts), y las otras dos no tienen
+// una acción concreta que ejecutar desde acá.
+function CriticalPatternBanner({
+  pattern,
+  onAction,
+}: {
+  pattern: SkipPattern;
+  onAction: (pattern: SkipPattern, action: RecommendedAction) => void;
+}) {
   return (
     <div className="rounded-2xl border border-red-300 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
       <p className="font-medium text-red-900 dark:text-red-100">⚠️ Revisá esto antes de comenzar</p>
       <p className="mt-1 text-sm text-red-900 dark:text-red-100">{pattern.recommendation.body}</p>
       <div className="mt-2 flex flex-wrap gap-2">
         {pattern.recommendation.actions.map((a) => (
-          <span
-            key={a.label}
-            className="rounded-lg border border-red-300 px-2 py-1 text-xs text-red-900 dark:border-red-700 dark:text-red-100"
-          >
-            {a.label}
-          </span>
+          <PatternActionChip key={a.label} action={a} tone="red" onClick={() => onAction(pattern, a)} />
         ))}
       </div>
     </div>
   );
 }
 
-function CollapsiblePatternBanner({ patterns }: { patterns: SkipPattern[] }) {
+function CollapsiblePatternBanner({
+  patterns,
+  onAction,
+}: {
+  patterns: SkipPattern[];
+  onAction: (pattern: SkipPattern, action: RecommendedAction) => void;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <div className="rounded-2xl border border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
@@ -230,12 +290,7 @@ function CollapsiblePatternBanner({ patterns }: { patterns: SkipPattern[] }) {
               <p className="text-sm text-amber-900 dark:text-amber-100">{p.recommendation.body}</p>
               <div className="mt-1 flex flex-wrap gap-2">
                 {p.recommendation.actions.map((a) => (
-                  <span
-                    key={a.label}
-                    className="rounded-lg border border-amber-300 px-2 py-1 text-xs text-amber-900 dark:border-amber-700 dark:text-amber-100"
-                  >
-                    {a.label}
-                  </span>
+                  <PatternActionChip key={a.label} action={a} tone="amber" onClick={() => onAction(p, a)} />
                 ))}
               </div>
             </div>
@@ -243,5 +298,37 @@ function CollapsiblePatternBanner({ patterns }: { patterns: SkipPattern[] }) {
         </div>
       )}
     </div>
+  );
+}
+
+const INTERACTIVE_ACTION_TYPES = new Set(["reorder_in_session", "suggest_alternative"]);
+
+function PatternActionChip({
+  action,
+  tone,
+  onClick,
+}: {
+  action: RecommendedAction;
+  tone: "red" | "amber";
+  onClick: () => void;
+}) {
+  const interactive = INTERACTIVE_ACTION_TYPES.has(action.actionType);
+  const toneClass =
+    tone === "red"
+      ? "border-red-300 text-red-900 dark:border-red-700 dark:text-red-100"
+      : "border-amber-300 text-amber-900 dark:border-amber-700 dark:text-amber-100";
+
+  if (!interactive) {
+    return <span className={`rounded-lg border px-2 py-1 text-xs ${toneClass}`}>{action.label}</span>;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`min-h-9 rounded-lg border px-2 py-1 text-xs font-medium ${toneClass}`}
+    >
+      {action.label}
+    </button>
   );
 }

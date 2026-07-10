@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildRecommendation, detectSkipPatterns, type SkipRecord } from "./skip-patterns";
 
-const exercise = { id: "ex-1", name: "Press de Banca" };
+const slot = { slotId: "slot-1", exerciseId: "ex-1", exerciseName: "Press de Banca" };
 
 function record(overrides: Partial<SkipRecord>): SkipRecord {
   return {
@@ -18,7 +18,7 @@ function record(overrides: Partial<SkipRecord>): SkipRecord {
 
 describe("detectSkipPatterns", () => {
   it("no detecta nada con historial vacío", () => {
-    expect(detectSkipPatterns([], exercise)).toEqual([]);
+    expect(detectSkipPatterns([], slot)).toEqual([]);
   });
 
   it("detecta recurring_station_busy con 2+ de las últimas 4 sesiones", () => {
@@ -28,7 +28,7 @@ describe("detectSkipPatterns", () => {
       record({ sessionDate: "2026-07-02", status: "skipped", skipReason: "station_occupied" }),
       record({ sessionDate: "2026-07-01", status: "completed" }),
     ];
-    const patterns = detectSkipPatterns(history, exercise);
+    const patterns = detectSkipPatterns(history, slot);
     expect(patterns).toHaveLength(1);
     expect(patterns[0].type).toBe("recurring_station_busy");
     expect(patterns[0].severity).toBe("warning");
@@ -42,7 +42,7 @@ describe("detectSkipPatterns", () => {
       record({ sessionDate: "2026-07-02", status: "partial" }),
       record({ sessionDate: "2026-07-01", status: "completed" }),
     ];
-    const patterns = detectSkipPatterns(history, exercise);
+    const patterns = detectSkipPatterns(history, slot);
     expect(patterns).toHaveLength(1);
     expect(patterns[0].type).toBe("chronic_partial");
     expect(patterns[0].severity).toBe("info");
@@ -54,7 +54,7 @@ describe("detectSkipPatterns", () => {
       record({ sessionDate: "2026-07-03", status: "skipped", skipReason: "station_occupied" }),
       record({ sessionDate: "2026-07-02", status: "skipped", skipReason: "station_occupied" }),
     ];
-    const patterns = detectSkipPatterns(history, exercise);
+    const patterns = detectSkipPatterns(history, slot);
     expect(patterns).toHaveLength(1);
     expect(patterns[0].type).toBe("physical_concern");
     expect(patterns[0].severity).toBe("critical");
@@ -69,7 +69,7 @@ describe("detectSkipPatterns", () => {
       record({ sessionDate: "2026-07-02", status: "skipped", skipReason: "other" }),
       record({ sessionDate: "2026-07-01", status: "completed" }),
     ];
-    const patterns = detectSkipPatterns(history, exercise);
+    const patterns = detectSkipPatterns(history, slot);
     expect(patterns).toHaveLength(1);
     expect(patterns[0].type).toBe("recurring_skip");
   });
@@ -79,15 +79,16 @@ describe("detectSkipPatterns", () => {
       record({ sessionDate: "2026-07-02", status: "skipped", skipReason: "station_occupied" }),
       record({ sessionDate: "2026-07-01", status: "completed" }),
     ];
-    expect(detectSkipPatterns(history, exercise)).toEqual([]);
+    expect(detectSkipPatterns(history, slot)).toEqual([]);
   });
 });
 
 describe("buildRecommendation", () => {
   it("genera título, body, acciones e impactNote para cada tipo de patrón", () => {
     const base = {
-      exerciseId: exercise.id,
-      exerciseName: exercise.name,
+      slotId: slot.slotId,
+      exerciseId: slot.exerciseId,
+      exerciseName: slot.exerciseName,
       occurrences: 2,
       totalSessions: 4,
     };
@@ -102,7 +103,7 @@ describe("buildRecommendation", () => {
     for (const t of types) {
       const rec = buildRecommendation({ ...base, ...t });
       expect(rec.title.length).toBeGreaterThan(0);
-      expect(rec.body).toContain(exercise.name);
+      expect(rec.body).toContain(slot.exerciseName);
       expect(rec.actions.length).toBeGreaterThan(0);
       expect(rec.impactNote.length).toBeGreaterThan(0);
     }

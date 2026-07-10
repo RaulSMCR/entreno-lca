@@ -3,14 +3,15 @@
 // Adaptaciones respecto del prompt original:
 // - No hay una segunda caché con TTL de 24h: Dexie ya es la caché local-first
 //   (lib/sync.ts la mantiene al día), agregar otra capa sería redundante.
-// - detectSkipPatterns recibe el { id, name } del ejercicio explícito, porque
-//   SkipRecord no lo incluye (viene de session_exercise_statuses, que no
-//   duplica datos de exercises) y el resultado sí necesita exerciseId/Name.
-// - Un mismo exercise_id puede aparecer en más de un template_slot dentro de
-//   la misma sesión (confirmado en datos reales — template A1 repite un
-//   ejercicio en dos slots): getSkipHistory combina esas filas a UN registro
-//   por sesión, para no inflar el conteo de ocurrencias que usan los umbrales
-//   de detección de patrones.
+// - Todo esto es por template_slot_id, NO por exercise_id. Un mismo ejercicio
+//   puede repetirse en más de un slot dentro de la misma plantilla con
+//   propósitos de entrenamiento distintos (p.ej. fuerza en un slot, volumen
+//   en otro) — confirmado con el usuario que eso debe tratarse como dos
+//   entidades de seguimiento separadas, no una. template_slot_id es estable
+//   sesión a sesión (la plantilla no cambia), así que es la clave correcta
+//   para el historial de patrones: agrupar por exercise_id mezclaría el
+//   historial de "omití la versión de fuerza" con el de "omití la versión de
+//   volumen" del mismo ejercicio, que son problemas distintos.
 
 import { db, type LocalSession } from "./db";
 import type { ExerciseStatus, SkipReason } from "./session-exercise";
@@ -25,18 +26,11 @@ export type SkipRecord = {
   setsPlanned: number;
 };
 
-// Al combinar varias filas de una misma sesión, se prioriza el estado más
-// "notable" (skipped/partial pesan más que completed) como representante.
-const STATUS_MERGE_PRIORITY: Record<ExerciseStatus, number> = {
-  skipped: 0,
-  partial: 1,
-  in_progress: 2,
-  pending: 3,
-  completed: 4,
-};
-
-export async function getSkipHistory(exerciseId: string, lookbackSessions: number = 6): Promise<SkipRecord[]> {
-  const statuses = await db.session_exercise_statuses.where("exercise_id").equals(exerciseId).toArray();
+// La restricción unique(session_id, template_slot_id) garantiza a lo sumo
+// una fila por sesión para este slot — a diferencia de exercise_id, acá no
+// hace falta combinar/desduplicar filas de una misma sesión.
+export async function getSkipHistory(templateSlotId: string, lookbackSessions: number = 6): Promise<SkipRecord[]> {
+  const statuses = await db.session_exercise_statuses.where("template_slot_id").equals(templateSlotId).toArray();
   if (statuses.length === 0) return [];
 
   const sessionIds = Array.from(new Set(statuses.map((s) => s.session_id)));
@@ -45,10 +39,9 @@ export async function getSkipHistory(exerciseId: string, lookbackSessions: numbe
     sessions.filter((s): s is LocalSession => !!s).map((s) => [s.id, s])
   );
 
-  const bySession = new Map<string, SkipRecord>();
-  for (const s of statuses) {
-    if (s._deleted === 1 || !sessionById.has(s.session_id)) continue;
-    const record: SkipRecord = {
+  return statuses
+    .filter((s) => s._deleted !== 1 && sessionById.has(s.session_id))
+    .map((s) => ({
       sessionId: s.session_id,
       sessionDate: sessionById.get(s.session_id)!.date,
       status: s.status as ExerciseStatus,
@@ -56,20 +49,7 @@ export async function getSkipHistory(exerciseId: string, lookbackSessions: numbe
       skipNote: s.skip_note,
       setsCompleted: s.sets_completed,
       setsPlanned: s.sets_planned,
-    };
-
-    const prev = bySession.get(s.session_id);
-    if (!prev) {
-      bySession.set(s.session_id, record);
-      continue;
-    }
-    const winner = STATUS_MERGE_PRIORITY[record.status] <= STATUS_MERGE_PRIORITY[prev.status] ? record : prev;
-    winner.setsCompleted = prev.setsCompleted + record.setsCompleted;
-    winner.setsPlanned = prev.setsPlanned + record.setsPlanned;
-    bySession.set(s.session_id, winner);
-  }
-
-  return Array.from(bySession.values())
+    }))
     .sort((a, b) => b.sessionDate.localeCompare(a.sessionDate))
     .slice(0, lookbackSessions);
 }
@@ -85,6 +65,8 @@ export type PatternSeverity = "info" | "warning" | "critical";
 
 export type SkipPatternBase = {
   type: PatternType;
+  /** template_slots.id — identidad real del patrón (ver nota de arriba). */
+  slotId: string;
   exerciseId: string;
   exerciseName: string;
   reason: SkipReason | null;
@@ -95,13 +77,12 @@ export type SkipPatternBase = {
 
 export type SkipPattern = SkipPatternBase & { recommendation: SkipRecommendation };
 
+export type SlotIdentity = { slotId: string; exerciseId: string; exerciseName: string };
+
 // Evalúa las reglas en orden de prioridad y devuelve el primer patrón que
-// matchee (0 o 1 elemento) — evita que un mismo ejercicio dispare varias
-// alertas superpuestas en la misma sesión.
-export function detectSkipPatterns(
-  history: SkipRecord[],
-  exercise: { id: string; name: string }
-): SkipPatternBase[] {
+// matchee (0 o 1 elemento) — evita que un mismo slot dispare varias alertas
+// superpuestas en la misma sesión.
+export function detectSkipPatterns(history: SkipRecord[], slot: SlotIdentity): SkipPatternBase[] {
   const last2 = history.slice(0, 2);
   const last4 = history.slice(0, 4);
   const last6 = history.slice(0, 6);
@@ -111,8 +92,9 @@ export function detectSkipPatterns(
     return [
       {
         type: "physical_concern",
-        exerciseId: exercise.id,
-        exerciseName: exercise.name,
+        slotId: slot.slotId,
+        exerciseId: slot.exerciseId,
+        exerciseName: slot.exerciseName,
         reason: "physical_discomfort",
         occurrences: physicalConcernCount,
         totalSessions: last2.length,
@@ -126,8 +108,9 @@ export function detectSkipPatterns(
     return [
       {
         type: "recurring_station_busy",
-        exerciseId: exercise.id,
-        exerciseName: exercise.name,
+        slotId: slot.slotId,
+        exerciseId: slot.exerciseId,
+        exerciseName: slot.exerciseName,
         reason: "station_occupied",
         occurrences: stationBusyCount,
         totalSessions: last4.length,
@@ -141,8 +124,9 @@ export function detectSkipPatterns(
     return [
       {
         type: "recurring_equipment_issue",
-        exerciseId: exercise.id,
-        exerciseName: exercise.name,
+        slotId: slot.slotId,
+        exerciseId: slot.exerciseId,
+        exerciseName: slot.exerciseName,
         reason: "equipment_unavailable",
         occurrences: equipmentIssueCount,
         totalSessions: last4.length,
@@ -156,8 +140,9 @@ export function detectSkipPatterns(
     return [
       {
         type: "chronic_partial",
-        exerciseId: exercise.id,
-        exerciseName: exercise.name,
+        slotId: slot.slotId,
+        exerciseId: slot.exerciseId,
+        exerciseName: slot.exerciseName,
         reason: null,
         occurrences: chronicPartialCount,
         totalSessions: last4.length,
@@ -171,8 +156,9 @@ export function detectSkipPatterns(
     return [
       {
         type: "recurring_skip",
-        exerciseId: exercise.id,
-        exerciseName: exercise.name,
+        slotId: slot.slotId,
+        exerciseId: slot.exerciseId,
+        exerciseName: slot.exerciseName,
         reason: null,
         occurrences: recurringSkipCount,
         totalSessions: last6.length,
@@ -271,7 +257,7 @@ export function buildRecommendation(
   }
 }
 
-export type SlotForPatternAnalysis = { exercise_id: string; block: string };
+export type SlotForPatternAnalysis = { id: string; exercise_id: string; block: string };
 export type ExerciseForPatternAnalysis = { id: string; name: string; equipment?: { name: string } | null };
 
 const SEVERITY_RANK: Record<PatternSeverity, number> = { critical: 0, warning: 1, info: 2 };
@@ -287,10 +273,10 @@ export async function analyzeSessionPatterns(
     const exercise = exerciseById.get(slot.exercise_id);
     if (!exercise) continue;
 
-    const history = await getSkipHistory(slot.exercise_id, 6);
+    const history = await getSkipHistory(slot.id, 6);
     if (history.length === 0) continue;
 
-    const detected = detectSkipPatterns(history, { id: exercise.id, name: exercise.name });
+    const detected = detectSkipPatterns(history, { slotId: slot.id, exerciseId: exercise.id, exerciseName: exercise.name });
     for (const raw of detected) {
       patterns.push({
         ...raw,
