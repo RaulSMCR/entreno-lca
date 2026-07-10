@@ -227,6 +227,85 @@ export type Database = {
           },
         ]
       }
+      session_exercise_statuses: {
+        Row: {
+          actual_duration_seconds: number | null
+          completed_at: string | null
+          created_at: string
+          exercise_id: string
+          execution_order: number | null
+          id: string
+          session_id: string
+          sets_completed: number
+          sets_planned: number
+          skip_note: string | null
+          skip_reason: string | null
+          started_at: string | null
+          status: string
+          template_slot_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actual_duration_seconds?: number | null
+          completed_at?: string | null
+          created_at?: string
+          exercise_id: string
+          execution_order?: number | null
+          id?: string
+          session_id: string
+          sets_completed?: number
+          sets_planned: number
+          skip_note?: string | null
+          skip_reason?: string | null
+          started_at?: string | null
+          status?: string
+          template_slot_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          actual_duration_seconds?: number | null
+          completed_at?: string | null
+          created_at?: string
+          exercise_id?: string
+          execution_order?: number | null
+          id?: string
+          session_id?: string
+          sets_completed?: number
+          sets_planned?: number
+          skip_note?: string | null
+          skip_reason?: string | null
+          started_at?: string | null
+          status?: string
+          template_slot_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_exercise_statuses_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_exercise_statuses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_exercise_statuses_template_slot_id_fkey"
+            columns: ["template_slot_id"]
+            isOneToOne: false
+            referencedRelation: "template_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sessions: {
         Row: {
           bodyweight_kg: number | null
@@ -236,6 +315,7 @@ export type Database = {
           id: string
           notes: string | null
           readiness: number | null
+          session_duration_variance_pct: number | null
           updated_at: string
           user_id: string
         }
@@ -247,6 +327,7 @@ export type Database = {
           id?: string
           notes?: string | null
           readiness?: number | null
+          session_duration_variance_pct?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -258,6 +339,7 @@ export type Database = {
           id?: string
           notes?: string | null
           readiness?: number | null
+          session_duration_variance_pct?: number | null
           updated_at?: string
           user_id?: string
         }

@@ -77,6 +77,13 @@ export type LoadSuggestion = SnappedLoad & {
 
 const LOW_READINESS_THRESHOLD = 2;
 
+// R-4 Part C: contexto de patrones de omisión detectados por lib/skip-patterns.ts
+// que moderan la sugerencia. chronic_partial no toca la carga (ver
+// adjustPlannedSets más abajo) — solo recentPhysicalDiscomfort ajusta acá.
+export type PatternAdjustment = {
+  recentPhysicalDiscomfort?: boolean;
+};
+
 // Tres caminos (el tercero con dos variantes, repetir o bajar, según qué tan
 // corto se quedó):
 // 1) cumplió reps con RPE <= objetivo            -> increase
@@ -84,7 +91,31 @@ const LOW_READINESS_THRESHOLD = 2;
 // 3) no cumplió reps (o RPE a fallo)              -> repeat | decrease
 // Con readiness baja (<=2 de 5) se modera un escalón: increase -> maintain,
 // para no perseguir progresión cuando el cuerpo venía golpeado esa sesión.
-export function suggestNextLoad(input: SuggestNextLoadInput, equipment: EquipmentLoadConfig): LoadSuggestion {
+export function suggestNextLoad(
+  input: SuggestNextLoadInput,
+  equipment: EquipmentLoadConfig,
+  patternAdjustment?: PatternAdjustment
+): LoadSuggestion {
+  const base = computeBaseLoadSuggestion(input, equipment);
+
+  if (!patternAdjustment?.recentPhysicalDiscomfort) return base;
+
+  // Precaución adicional (independiente del readiness): -10% sobre la carga ya
+  // sugerida, no acumulable con el resto de la lógica de acción/razón.
+  const cautiousIdeal = Math.round(base.real * 0.9 * 100) / 100;
+  const available = resolveAvailableLoads(equipment);
+  const snap = available.length > 0 ? snapLoad(cautiousIdeal, equipment, "down") : { real: cautiousIdeal, delta: 0 };
+
+  return {
+    ideal: cautiousIdeal,
+    real: snap.real,
+    delta: snap.delta,
+    action: base.action,
+    reason: `${base.reason} Carga reducida por precaución: registraste molestia física en sesiones recientes. Si la molestia persiste, consultá a tu médico.`,
+  };
+}
+
+function computeBaseLoadSuggestion(input: SuggestNextLoadInput, equipment: EquipmentLoadConfig): LoadSuggestion {
   const { target_reps, target_rpe, last_session_sets, readiness } = input;
   if (last_session_sets.length === 0) {
     throw new Error("suggestNextLoad necesita al menos una serie de la sesión anterior");
@@ -152,6 +183,19 @@ export function suggestNextLoad(input: SuggestNextLoadInput, equipment: Equipmen
     ...snapped(nextDown),
     action: "decrease",
     reason: `Quedaste lejos del objetivo de reps (RPE ${maxRpe}): bajá un escalón.`,
+  };
+}
+
+export type PlannedSetsAdjustment = { sets: number; note: string | null };
+
+// R-4 Part C: si el ejercicio viene "partial" en 3+ de los últimos 4 ciclos,
+// bajamos el volumen (no la carga) en 1 set, para que el usuario complete de
+// forma consistente antes de volver al plan original.
+export function adjustPlannedSets(plannedSets: number, chronicPartial: boolean): PlannedSetsAdjustment {
+  if (!chronicPartial) return { sets: plannedSets, note: null };
+  return {
+    sets: Math.max(1, plannedSets - 1),
+    note: "Sets reducidos por historial de sesiones parciales. Completá estos sets consistentemente antes de volver al volumen original.",
   };
 }
 

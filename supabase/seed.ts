@@ -59,6 +59,137 @@ type SeedFile = {
   weekly_schedule: SeedWeeklyEntry[];
 };
 
+type SeedEquipment = {
+  name: string;
+  type: "free_weight" | "machine" | "cable_stack" | "bodyweight" | "barbell";
+  load_mode: "list" | "range" | "barbell";
+  available_loads?: number[] | null;
+  min_kg?: number | null;
+  max_kg?: number | null;
+  step_kg?: number | null;
+  bar_kg?: number | null;
+  plate_pairs?: number[] | null;
+  micro_plates?: number[] | null;
+};
+
+const seedEquipment: SeedEquipment[] = [
+  {
+    name: "Barra olimpica + discos",
+    type: "barbell",
+    load_mode: "barbell",
+    bar_kg: 20,
+    plate_pairs: [1.25, 2.5, 5, 10, 15, 20],
+    micro_plates: [0.5],
+  },
+  {
+    name: "Mancuernas",
+    type: "free_weight",
+    load_mode: "list",
+    available_loads: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40],
+  },
+  {
+    name: "Polea regulable",
+    type: "cable_stack",
+    load_mode: "range",
+    min_kg: 5,
+    max_kg: 100,
+    step_kg: 2.5,
+  },
+  {
+    name: "Maquinas de tren superior",
+    type: "machine",
+    load_mode: "range",
+    min_kg: 5,
+    max_kg: 140,
+    step_kg: 5,
+  },
+  {
+    name: "Maquinas de pierna sana",
+    type: "machine",
+    load_mode: "range",
+    min_kg: 5,
+    max_kg: 200,
+    step_kg: 5,
+  },
+  {
+    name: "Peso corporal / movilidad",
+    type: "bodyweight",
+    load_mode: "range",
+    min_kg: 0,
+    max_kg: 150,
+    step_kg: 1,
+  },
+  {
+    name: "Slam ball",
+    type: "free_weight",
+    load_mode: "list",
+    available_loads: [3, 5, 8, 10, 12, 15, 20],
+  },
+  {
+    name: "Discos de agarre",
+    type: "free_weight",
+    load_mode: "list",
+    available_loads: [1.25, 2.5, 5, 10, 15, 20],
+  },
+  {
+    name: "Ergometro de brazos",
+    type: "machine",
+    load_mode: "range",
+    min_kg: 1,
+    max_kg: 20,
+    step_kg: 1,
+  },
+];
+
+function normalizeName(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function equipmentNameForExercise(name: string): string | null {
+  const normalized = normalizeName(name);
+
+  if (normalized.includes("slam ball")) return "Slam ball";
+  if (normalized.includes("plate pinch")) return "Discos de agarre";
+  if (normalized.includes("ski") || normalized.includes("bicicleta")) return "Ergometro de brazos";
+  if (normalized.includes("prensa") || normalized.includes("extension cuadriceps")) return "Maquinas de pierna sana";
+  if (normalized.includes("hammer") || normalized.includes("remo articulado")) return "Maquinas de tren superior";
+  if (
+    normalized.includes("polea") ||
+    normalized.includes("jalon") ||
+    normalized.includes("gironda") ||
+    normalized.includes("pallof") ||
+    normalized.includes("woodchoppers")
+  ) {
+    return "Polea regulable";
+  }
+  if (
+    normalized.includes("manc") ||
+    normalized.includes("farmer") ||
+    normalized.includes("curl antebrazo") ||
+    normalized.includes("pecho apoyado banco")
+  ) {
+    return "Mancuernas";
+  }
+  if (normalized.includes("banca")) return "Barra olimpica + discos";
+  if (
+    normalized.includes("dominadas") ||
+    normalized.includes("fondos") ||
+    normalized.includes("suspensiones") ||
+    normalized.includes("plancha") ||
+    normalized.includes("rotaciones") ||
+    normalized.includes("spine") ||
+    normalized.includes("estiramiento") ||
+    normalized.includes("movilidad")
+  ) {
+    return "Peso corporal / movilidad";
+  }
+
+  return null;
+}
+
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const email = process.env.SEED_USER_EMAIL;
@@ -80,11 +211,22 @@ async function main() {
   const { error: signInError } = await supabase.auth.signInWithPassword({ email: email!, password: password! });
   if (signInError) throw signInError;
 
+  const { data: equipment, error: equipmentError } = await supabase
+    .from("equipment")
+    .upsert(seedEquipment, { onConflict: "user_id,name" })
+    .select("id, name");
+  if (equipmentError) throw equipmentError;
+
+  const equipmentIdByName = new Map(equipment.map((e) => [e.name, e.id]));
+
   const exerciseRows = seed.exercises.map((e) => ({
     name: e.name,
     block: e.block,
     category: e.category,
     unit: e.unit,
+    equipment_id: equipmentNameForExercise(e.name)
+      ? equipmentIdByName.get(equipmentNameForExercise(e.name)!) ?? null
+      : null,
     rm_base_kg: e.rm_base_kg,
     e1rm_kg: e.rm_base_kg, // punto de partida del motor de cálculo (Prompt 1.3)
     biomech_note: e.biomech_note,
@@ -169,7 +311,7 @@ async function main() {
   if (scheduleError) throw scheduleError;
 
   console.log(
-    `Seed completo: ${exercises.length} ejercicios, ${templates.length} plantillas, ${slotRows.length} slots, ${scheduleRows.length} días de horario.`
+    `Seed completo: ${equipment.length} equipos, ${exercises.length} ejercicios, ${templates.length} plantillas, ${slotRows.length} slots, ${scheduleRows.length} dias de horario.`
   );
 }
 

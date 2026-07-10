@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  adjustPlannedSets,
   e1rmFromSet,
   suggestNextLoad,
   suggestNextTarget,
@@ -138,6 +139,54 @@ describe("suggestNextLoad", () => {
     );
     expect(result.action).toBe("increase");
     expect(result.real).toBeGreaterThan(75);
+  });
+});
+
+describe("suggestNextLoad con patternAdjustment (R-4)", () => {
+  const baseInput = { target_reps: 5, target_rpe: 8 };
+
+  it("sin patternAdjustment, el comportamiento no cambia", () => {
+    const withUndefined = suggestNextLoad(
+      { ...baseInput, last_session_sets: [{ load: 75, reps: 5, rpe: 7.5 }] },
+      barbell
+    );
+    const withEmpty = suggestNextLoad(
+      { ...baseInput, last_session_sets: [{ load: 75, reps: 5, rpe: 7.5 }] },
+      barbell,
+      {}
+    );
+    expect(withEmpty).toEqual(withUndefined);
+  });
+
+  it("con recentPhysicalDiscomfort, reduce la carga ~10% adicional sobre la sugerencia base", () => {
+    const base = suggestNextLoad(
+      { ...baseInput, last_session_sets: [{ load: 75, reps: 5, rpe: 7.5 }] },
+      barbell
+    );
+    const cautious = suggestNextLoad(
+      { ...baseInput, last_session_sets: [{ load: 75, reps: 5, rpe: 7.5 }] },
+      barbell,
+      { recentPhysicalDiscomfort: true }
+    );
+    expect(cautious.action).toBe(base.action);
+    expect(cautious.real).toBeLessThan(base.real);
+    expect(cautious.reason).toContain("médico");
+  });
+});
+
+describe("adjustPlannedSets", () => {
+  it("sin chronicPartial, deja los sets sin cambios", () => {
+    expect(adjustPlannedSets(4, false)).toEqual({ sets: 4, note: null });
+  });
+
+  it("con chronicPartial, reduce 1 set y agrega una nota", () => {
+    const result = adjustPlannedSets(4, true);
+    expect(result.sets).toBe(3);
+    expect(result.note).toContain("sesiones parciales");
+  });
+
+  it("con chronicPartial, nunca baja de 1 set", () => {
+    expect(adjustPlannedSets(1, true).sets).toBe(1);
   });
 });
 

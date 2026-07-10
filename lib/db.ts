@@ -20,6 +20,7 @@ export type LocalWeeklySchedule = Mirrored<"weekly_schedule">;
 export type LocalSession = Mirrored<"sessions">;
 export type LocalSetLog = Mirrored<"set_logs">;
 export type LocalE1rmEstimate = Mirrored<"e1rm_estimates">;
+export type LocalSessionExerciseStatus = Mirrored<"session_exercise_statuses">;
 
 export const MIRRORED_TABLES = [
   "equipment",
@@ -30,6 +31,7 @@ export const MIRRORED_TABLES = [
   "sessions",
   "set_logs",
   "e1rm_estimates",
+  "session_exercise_statuses",
 ] as const;
 
 export type MirroredTableName = (typeof MIRRORED_TABLES)[number];
@@ -43,6 +45,7 @@ class AppDB extends Dexie {
   sessions!: Table<LocalSession, string>;
   set_logs!: Table<LocalSetLog, string>;
   e1rm_estimates!: Table<LocalE1rmEstimate, string>;
+  session_exercise_statuses!: Table<LocalSessionExerciseStatus, string>;
 
   constructor() {
     super("entreno-lca");
@@ -55,6 +58,19 @@ class AppDB extends Dexie {
       sessions: "id, date, _dirty",
       set_logs: "id, session_id, exercise_id, _dirty",
       e1rm_estimates: "id, exercise_id, _dirty",
+    });
+    // v2: agrega session_exercise_statuses (R-3). Dexie exige repetir el
+    // schema completo de las tablas sin cambios al subir de versión.
+    this.version(2).stores({
+      equipment: "id, _dirty",
+      exercises: "id, _dirty",
+      day_templates: "id, code, _dirty",
+      template_slots: "id, day_template_id, _dirty",
+      weekly_schedule: "id, weekday, _dirty",
+      sessions: "id, date, _dirty",
+      set_logs: "id, session_id, exercise_id, _dirty",
+      e1rm_estimates: "id, exercise_id, _dirty",
+      session_exercise_statuses: "id, session_id, exercise_id, _dirty",
     });
   }
 }

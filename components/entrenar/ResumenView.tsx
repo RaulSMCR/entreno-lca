@@ -1,9 +1,10 @@
 "use client";
 
-import type { SessionSummary } from "./SesionView";
+import type { SessionSummary } from "./WorkoutSetFlow";
 import { SyncStatus } from "@/components/SyncStatus";
 import { db } from "@/lib/db";
 import { buildHistoryRows, downloadHistoryAsCsv, downloadHistoryAsJson } from "@/lib/export";
+import type { SkipReason } from "@/lib/session-exercise";
 
 const ACTION_LABEL: Record<string, string> = {
   increase: "Subí",
@@ -19,16 +20,39 @@ const ACTION_STYLE: Record<string, string> = {
   decrease: "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100",
 };
 
+const SKIP_REASON_LABEL: Record<SkipReason, string> = {
+  station_occupied: "Estación ocupada",
+  equipment_unavailable: "Equipo no disponible",
+  physical_discomfort: "Molestia física registrada",
+  no_time: "Sin tiempo",
+  other: "Otro motivo",
+};
+
+export type OmittedExerciseSummary = {
+  exerciseId: string;
+  exerciseName: string;
+  status: "partial" | "skipped";
+  skipReason: SkipReason | null;
+  skipNote: string | null;
+  setsCompleted: number;
+  setsPlanned: number;
+  hasPattern: boolean;
+};
+
 export function ResumenView({
   summary,
   sessionId,
   sessionDate,
   onClose,
+  omitted = [],
+  volumeCompletion,
 }: {
   summary: SessionSummary[];
   sessionId: string | null;
   sessionDate: string;
   onClose: () => void;
+  omitted?: OmittedExerciseSummary[];
+  volumeCompletion?: { completedSets: number; plannedSets: number; pct: number };
 }) {
   async function exportSession(format: "csv" | "json") {
     if (!sessionId) return;
@@ -51,6 +75,38 @@ export function ResumenView({
 
       {summary.length === 0 && (
         <p className="text-sm text-zinc-500 dark:text-zinc-400">No se registró ninguna serie en esta sesión.</p>
+      )}
+
+      {omitted.length > 0 && (
+        <div className="flex flex-col gap-2 rounded-2xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
+          <p className="font-medium text-amber-900 dark:text-amber-100">Ejercicios omitidos</p>
+          {volumeCompletion && (
+            <p className="text-sm text-amber-900 dark:text-amber-100">
+              Volumen completado: {volumeCompletion.pct}% del plan ({volumeCompletion.completedSets} de{" "}
+              {volumeCompletion.plannedSets} series)
+            </p>
+          )}
+          <div className="flex flex-col gap-2">
+            {omitted.map((o) => (
+              <div key={o.exerciseId} className="flex items-center justify-between gap-2 text-sm">
+                <div>
+                  <span className="font-medium text-amber-900 dark:text-amber-100">{o.exerciseName}</span>
+                  <span className="text-amber-800 dark:text-amber-200">
+                    {" "}
+                    · {o.status === "partial" ? `${o.setsCompleted}/${o.setsPlanned} series` : "omitido"}
+                    {o.skipReason ? ` · ${SKIP_REASON_LABEL[o.skipReason]}` : ""}
+                  </span>
+                  {o.skipNote && <p className="text-xs text-amber-800 dark:text-amber-200">“{o.skipNote}”</p>}
+                </div>
+                {o.hasPattern && (
+                  <span className="shrink-0 rounded-full bg-amber-200 px-2 py-0.5 text-xs text-amber-900 dark:bg-amber-900 dark:text-amber-100">
+                    ⚠️ Patrón detectado
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {summary.map((item, i) => (
@@ -77,6 +133,7 @@ export function ResumenView({
                   <p className="text-sm opacity-90">{item.suggestion.reason}</p>
                 </div>
               )}
+              {item.setsNote && <p className="text-sm text-amber-700 dark:text-amber-400">{item.setsNote}</p>}
             </>
           ) : (
             <p className="text-sm text-zinc-700 dark:text-zinc-300">
