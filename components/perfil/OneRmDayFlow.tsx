@@ -35,7 +35,7 @@ export function OneRmDayFlow({ userId, rehabPhase }: { userId: string; rehabPhas
         await pullRemote().catch(() => {});
       }
       if (cancelled) return;
-      const rows = await db.exercises.where("name").anyOf(EXERCISE_NAMES).toArray();
+      const rows = await db.exercises.toCollection().filter((r) => EXERCISE_NAMES.includes(r.name)).toArray();
       const byName = new Map(rows.map((r) => [r.name, r]));
       const ordered = EXERCISE_NAMES.map((n) => byName.get(n)).filter((r): r is LocalExercise => r != null);
 

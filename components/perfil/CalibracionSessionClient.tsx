@@ -108,7 +108,7 @@ function GenericCalibrationFlow({
       }
       if (cancelled) return;
       const names = CALIBRATION_SESSION_EXERCISES[sessionType];
-      const rows = await db.exercises.where("name").anyOf(names).toArray();
+      const rows = await db.exercises.toCollection().filter((r) => names.includes(r.name)).toArray();
       const byName = new Map(rows.map((r) => [r.name, r]));
       const ordered = names.map((n) => byName.get(n)).filter((r): r is LocalExercise => r != null);
       if (!cancelled) setExercises(ordered);
