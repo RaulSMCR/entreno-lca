@@ -499,6 +499,7 @@ export type Database = {
       }
       set_logs: {
         Row: {
+          actual_duration_seconds: number | null
           actual_load_kg: number | null
           actual_reps: number | null
           created_at: string
@@ -518,6 +519,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          actual_duration_seconds?: number | null
           actual_load_kg?: number | null
           actual_reps?: number | null
           created_at?: string
@@ -537,6 +539,7 @@ export type Database = {
           user_id?: string
         }
         Update: {
+          actual_duration_seconds?: number | null
           actual_load_kg?: number | null
           actual_reps?: number | null
           created_at?: string
@@ -594,6 +597,7 @@ export type Database = {
           scheme_raw: string | null
           sets: number | null
           slot_order: number
+          target_duration_seconds: number | null
           updated_at: string
           user_id: string
         }
@@ -611,6 +615,7 @@ export type Database = {
           scheme_raw?: string | null
           sets?: number | null
           slot_order: number
+          target_duration_seconds?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -628,6 +633,7 @@ export type Database = {
           scheme_raw?: string | null
           sets?: number | null
           slot_order?: number
+          target_duration_seconds?: number | null
           updated_at?: string
           user_id?: string
         }

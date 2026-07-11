@@ -7,7 +7,7 @@ import { SlotForm, type SlotFormValues } from "./SlotForm";
 
 type TemplateRow = Database["public"]["Tables"]["day_templates"]["Row"];
 type SlotRow = Database["public"]["Tables"]["template_slots"]["Row"];
-type ExerciseOption = { id: string; name: string; block: string; unit: string };
+type ExerciseOption = { id: string; name: string; block: string; unit: string; category: string | null };
 
 function slotSummary(slot: SlotRow): string {
   if (slot.block === "principal") {
@@ -15,6 +15,7 @@ function slotSummary(slot: SlotRow): string {
     if (slot.sets != null && slot.reps != null) parts.push(`${slot.sets}×${slot.reps}`);
     if (slot.pct_max != null) parts.push(`${slot.pct_max}%`);
     if (slot.rpe_target != null) parts.push(`RPE ${slot.rpe_target}`);
+    if (slot.target_duration_seconds != null) parts.push(`${Math.round(slot.target_duration_seconds / 60)} min`);
     return parts.join(" · ") || "—";
   }
   const parts = [];

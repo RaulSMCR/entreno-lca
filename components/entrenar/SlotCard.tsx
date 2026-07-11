@@ -7,6 +7,7 @@ import { resolveAvailableLoads, snapLoad, type EquipmentLoadConfig } from "@/lib
 import { targetLoad } from "@/lib/engine";
 import { getObjectiveFromSlot, type TrainingObjective } from "@/lib/training-theory";
 import { SetRow } from "./SetRow";
+import { CardioSetRow } from "./CardioSetRow";
 import { RestTimer } from "./RestTimer";
 import { PreSetCountdown } from "./PreSetCountdown";
 
@@ -20,6 +21,7 @@ function schemeLabel(slot: LocalTemplateSlot): string {
     if (slot.sets != null && slot.reps != null) parts.push(`${slot.sets}×${slot.reps}`);
     if (slot.pct_max != null) parts.push(`${slot.pct_max}%`);
     if (slot.rpe_target != null) parts.push(`RPE ${slot.rpe_target}`);
+    if (slot.target_duration_seconds != null) parts.push(`${Math.round(slot.target_duration_seconds / 60)} min`);
     return parts.join(" · ");
   }
   const parts: string[] = [];
@@ -151,19 +153,32 @@ export function SlotCard({
             {showPrepBanner && phase === "countdown" && (
               <PreSetCountdown objective={resolvedObjective} onDone={() => setPhase("done")} />
             )}
-            <SetRow
-              sessionId={sessionId}
-              userId={userId}
-              exerciseId={slot.exercise_id}
-              templateSlotId={slot.id}
-              setNumber={setNumber}
-              unit={exercise.unit as "kg" | "seconds" | "meters" | "intervals" | "reps"}
-              loadOptions={loadOptions}
-              defaults={defaults}
-              existing={logs?.find((l) => l.set_number === setNumber)}
-              targetLabel={targetLabel}
-              voicePrefill={rowVoicePrefill}
-            />
+            {exercise.category === "conditioning" ? (
+              <CardioSetRow
+                sessionId={sessionId}
+                userId={userId}
+                exerciseId={slot.exercise_id}
+                templateSlotId={slot.id}
+                setNumber={setNumber}
+                targetSeconds={slot.target_duration_seconds}
+                existing={logs?.find((l) => l.set_number === setNumber)}
+              />
+            ) : (
+              <SetRow
+                sessionId={sessionId}
+                userId={userId}
+                exerciseId={slot.exercise_id}
+                templateSlotId={slot.id}
+                setNumber={setNumber}
+                unit={exercise.unit as "kg" | "seconds" | "meters" | "intervals" | "reps"}
+                category={exercise.category}
+                loadOptions={loadOptions}
+                defaults={defaults}
+                existing={logs?.find((l) => l.set_number === setNumber)}
+                targetLabel={targetLabel}
+                voicePrefill={rowVoicePrefill}
+              />
+            )}
           </div>
         );
       })}

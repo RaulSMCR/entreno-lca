@@ -654,7 +654,8 @@
             "pct_max": null,
             "rpe_target": null,
             "raw": "8 Intervalos",
-            "note": "HIIT 30\"/90\""
+            "note": "HIIT 30\"/90\"",
+            "minutes": 16
           }
         },
         {

@@ -10,7 +10,7 @@ export default async function PlantillasPage() {
   const [{ data: templates }, { data: slots }, { data: exercises }] = await Promise.all([
     supabase.from("day_templates").select("*").order("code"),
     supabase.from("template_slots").select("*").order("slot_order"),
-    supabase.from("exercises").select("id, name, block, unit").eq("is_active", true).order("name"),
+    supabase.from("exercises").select("id, name, block, unit, category").eq("is_active", true).order("name"),
   ]);
 
   return (

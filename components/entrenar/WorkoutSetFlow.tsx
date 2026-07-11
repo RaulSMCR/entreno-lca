@@ -46,6 +46,14 @@ export type SessionSummary =
       unit: string;
       target: number;
       isPR: boolean;
+    }
+  | {
+      kind: "cardio";
+      exerciseName: string;
+      slotLabel: string | null;
+      targetSeconds: number | null;
+      actualSeconds: number;
+      status: "short" | "met" | "exceeded" | null;
     };
 
 export type WorkoutFinishResult = {
@@ -53,6 +61,14 @@ export type WorkoutFinishResult = {
   omitted: OmittedExerciseSummary[];
   volumeCompletion: { completedSets: number; plannedSets: number; pct: number };
 };
+
+// Igual que en CardioSetRow.tsx — duplicado a propósito (mismo criterio ya
+// usado en el resto del código para esta función chica).
+function classifyCardio(actualSeconds: number, targetSeconds: number): "short" | "met" | "exceeded" {
+  if (actualSeconds < targetSeconds * 0.9) return "short";
+  if (actualSeconds > targetSeconds * 1.1) return "exceeded";
+  return "met";
+}
 
 function schemeLabel(slot: SlotWithExercise): string {
   const sets = slot.sets ?? "?";
@@ -413,7 +429,23 @@ export function WorkoutSetFlow({
         const recentPhysicalDiscomfort = detected.some((p) => p.type === "physical_concern");
         const slotLabel = (slotsPerExercise.get(slot.exercise_id) ?? 0) > 1 ? schemeLabel(slot) : null;
 
-        if (exercise.unit === "kg") {
+        if (exercise.category === "conditioning") {
+          const cardioLogs = allLogs
+            .filter((l) => l.template_slot_id === slot.id && l._deleted !== 1 && l.actual_duration_seconds != null)
+            .sort((a, b) => b.created_at.localeCompare(a.created_at));
+          if (cardioLogs.length === 0) continue;
+
+          const actualSeconds = cardioLogs[0].actual_duration_seconds!;
+          const targetSeconds = slot.target_duration_seconds;
+          summary.push({
+            kind: "cardio",
+            exerciseName: exercise.name,
+            slotLabel,
+            targetSeconds,
+            actualSeconds,
+            status: targetSeconds != null ? classifyCardio(actualSeconds, targetSeconds) : null,
+          });
+        } else if (exercise.unit === "kg") {
           const e1rmResult = e1rmByExercise.get(slot.exercise_id);
           if (!e1rmResult) continue; // sin series válidas para e1RM (rpe/reps/carga faltantes)
 

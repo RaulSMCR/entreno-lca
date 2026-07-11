@@ -45,7 +45,11 @@ export function ProgresoClient() {
   }, []);
 
   const exercises = useLiveQuery(
-    () => db.exercises.toCollection().filter((e) => e.block === "principal" && e.is_active !== false).toArray(),
+    () =>
+      db.exercises
+        .toCollection()
+        .filter((e) => e.block === "principal" && e.unit === "kg" && e.is_active !== false)
+        .toArray(),
     [],
     []
   );

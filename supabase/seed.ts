@@ -31,6 +31,9 @@ type SeedSlot = {
     pct_max: number;
     rpe_target: number;
     raw: string;
+    /** Meta de cardio en minutos (ej. SkiErg) — se guarda como
+     *  target_duration_seconds. No aplica a slots de fuerza. */
+    minutes?: number;
   };
   secondary?: {
     series: number;
@@ -279,6 +282,7 @@ async function main() {
           pct_max: s.scheme.pct_max,
           rpe_target: s.scheme.rpe_target,
           scheme_raw: s.scheme.raw,
+          target_duration_seconds: s.scheme.minutes != null ? s.scheme.minutes * 60 : null,
         };
       }
       if (s.block === "secundario" && s.secondary) {

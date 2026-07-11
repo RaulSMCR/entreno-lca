@@ -77,6 +77,24 @@ export function estimateSessionTime(slots: SlotWithExercise[]): SessionTimeEstim
       transitionSecondsFor(slot.exercise.equipment?.type) +
       (index === 0 ? SESSION_BUFFERS.technique_reading_first : SESSION_BUFFERS.technique_reading_rest);
 
+    // Cardio (slot.target_duration_seconds): bloque continuo de tiempo, no
+    // series con descanso entre medio — la meta es directamente el trabajo.
+    if (slot.target_duration_seconds != null) {
+      const workSeconds = slot.target_duration_seconds;
+      const totalSeconds = setupSeconds + workSeconds;
+      return {
+        slotId: slot.id,
+        exerciseId: slot.exercise_id,
+        exerciseName: slot.exercise.name,
+        objective,
+        setupSeconds,
+        workSeconds,
+        restSeconds: 0,
+        countdownSeconds: 0,
+        totalSeconds,
+      };
+    }
+
     const sets = slot.sets ?? 3;
     const reps = slot.reps ?? 10;
 

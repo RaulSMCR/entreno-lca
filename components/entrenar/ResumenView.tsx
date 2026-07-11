@@ -40,6 +40,26 @@ const ACTION_STYLE: Record<string, string> = {
   decrease: "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100",
 };
 
+// Igual que en CardioSetRow.tsx — duplicado a propósito (mismo criterio ya
+// usado en el resto del código para constantes chicas).
+const CARDIO_STATUS_LABEL: Record<"short" | "met" | "exceeded", string> = {
+  short: "Corta",
+  met: "Cumplida",
+  exceeded: "Superada",
+};
+
+const CARDIO_STATUS_STYLE: Record<"short" | "met" | "exceeded", string> = {
+  short: "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100",
+  met: "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100",
+  exceeded: "border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-100",
+};
+
+function formatMMSS(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 const SKIP_REASON_LABEL: Record<SkipReason, string> = {
   station_occupied: "Estación ocupada",
   equipment_unavailable: "Equipo no disponible",
@@ -202,6 +222,20 @@ export function ResumenView({
                   oldE1rmKg={item.oldE1rm}
                   newE1rmKg={item.newE1rm}
                 />
+              )}
+            </>
+          ) : item.kind === "cardio" ? (
+            <>
+              <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                {formatMMSS(item.actualSeconds)}
+                {item.targetSeconds != null && ` de ${formatMMSS(item.targetSeconds)} de meta`}
+              </p>
+              {item.status && (
+                <span
+                  className={`mt-1 inline-block w-fit rounded-full border px-3 py-1 text-xs font-medium ${CARDIO_STATUS_STYLE[item.status]}`}
+                >
+                  {CARDIO_STATUS_LABEL[item.status]}
+                </span>
               )}
             </>
           ) : (

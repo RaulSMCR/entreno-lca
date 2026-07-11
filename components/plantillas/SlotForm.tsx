@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Database } from "@/types/database";
 
 type SlotRow = Database["public"]["Tables"]["template_slots"]["Row"];
-type ExerciseOption = { id: string; name: string; block: string; unit: string };
+type ExerciseOption = { id: string; name: string; block: string; unit: string; category: string | null };
 
 export type SlotFormValues = {
   exercise_id: string;
@@ -16,6 +16,7 @@ export type SlotFormValues = {
   reps_or_time: string | null;
   intensity_note: string | null;
   scheme_raw: string | null;
+  target_duration_seconds: number | null;
 };
 
 function fromRow(row: SlotRow | null, exercises: ExerciseOption[]): SlotFormValues {
@@ -30,6 +31,7 @@ function fromRow(row: SlotRow | null, exercises: ExerciseOption[]): SlotFormValu
       reps_or_time: null,
       intensity_note: null,
       scheme_raw: null,
+      target_duration_seconds: null,
     };
   }
   return {
@@ -42,6 +44,7 @@ function fromRow(row: SlotRow | null, exercises: ExerciseOption[]): SlotFormValu
     reps_or_time: row.reps_or_time,
     intensity_note: row.intensity_note,
     scheme_raw: row.scheme_raw,
+    target_duration_seconds: row.target_duration_seconds,
   };
 }
 
@@ -58,6 +61,8 @@ export function SlotForm({
 }) {
   const [values, setValues] = useState<SlotFormValues>(() => fromRow(initial, exercises));
   const [saving, setSaving] = useState(false);
+  const selectedExercise = exercises.find((ex) => ex.id === values.exercise_id);
+  const isCardio = selectedExercise?.category === "conditioning";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -100,7 +105,23 @@ export function SlotForm({
         </select>
       </label>
 
-      {values.block === "principal" ? (
+      {isCardio ? (
+        <label className="flex flex-col gap-1 text-sm">
+          Minutos objetivo
+          <input
+            inputMode="numeric"
+            value={values.target_duration_seconds != null ? Math.round(values.target_duration_seconds / 60) : ""}
+            onChange={(e) =>
+              setValues((v) => ({
+                ...v,
+                target_duration_seconds: e.target.value === "" ? null : Number(e.target.value) * 60,
+              }))
+            }
+            placeholder="16"
+            className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+          />
+        </label>
+      ) : values.block === "principal" ? (
         <div className="grid grid-cols-2 gap-2">
           <label className="flex flex-col gap-1 text-sm">
             Series

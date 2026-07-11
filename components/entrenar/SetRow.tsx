@@ -20,6 +20,7 @@ export function SetRow({
   templateSlotId,
   setNumber,
   unit,
+  category,
   loadOptions,
   defaults,
   existing,
@@ -35,12 +36,16 @@ export function SetRow({
   templateSlotId: string;
   setNumber: number;
   unit: "kg" | "seconds" | "meters" | "intervals" | "reps";
+  /** exercises.category — "mobility" oculta los controles específicos de
+   *  fuerza (a qué rep, fallo técnico) y agrega observaciones libres. */
+  category: string | null;
   loadOptions: number[];
   defaults: { load: number | null; reps: number | null; rpe: number | null };
   existing: LocalSetLog | undefined;
   targetLabel: string | null;
   voicePrefill?: VoicePrefill;
 }) {
+  const isMobility = category === "mobility";
   const [editing, setEditing] = useState(!existing || !!voicePrefill);
   const [load, setLoad] = useState(
     voicePrefill?.load ?? existing?.actual_load_kg ?? defaults.load ?? loadOptions[0] ?? 0
@@ -49,6 +54,7 @@ export function SetRow({
   const [rpe, setRpe] = useState<number | null>(voicePrefill?.rpe ?? existing?.rpe_reported ?? defaults.rpe ?? null);
   const [rpeAtRep, setRpeAtRep] = useState<number | null>(existing?.rpe_at_rep ?? null);
   const [isFailure, setIsFailure] = useState(existing?.is_failure ?? false);
+  const [note, setNote] = useState(existing?.note ?? "");
 
   const [running, setRunning] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -88,10 +94,11 @@ export function SetRow({
       actual_load_kg: unit === "kg" ? load : null,
       target_reps: existing?.target_reps ?? null,
       actual_reps: unit === "kg" ? qty : qty,
+      actual_duration_seconds: null,
       rpe_reported: rpe,
-      rpe_at_rep: rpeAtRep,
-      is_failure: isFailure,
-      note: null,
+      rpe_at_rep: isMobility ? null : rpeAtRep,
+      is_failure: isMobility ? false : isFailure,
+      note: isMobility && note.trim() !== "" ? note.trim() : null,
       synced_from_local: true,
       _dirty: 1,
       _deleted: 0,
@@ -109,6 +116,7 @@ export function SetRow({
           {unit !== "kg" ? ` ${UNIT_LABEL[unit] ?? ""}` : ""}
           {existing.rpe_reported != null ? ` · RPE ${existing.rpe_reported}` : ""}
           {existing.is_failure ? " · fallo técnico" : ""}
+          {isMobility && existing.note ? ` · "${existing.note}"` : ""}
         </span>
         <button
           type="button"
@@ -208,26 +216,41 @@ export function SetRow({
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-        <label className="flex min-h-11 items-center gap-1 py-2">
-          ¿A qué rep sentiste el RPE?
-          <input
-            inputMode="numeric"
-            value={rpeAtRep ?? ""}
-            onChange={(e) => setRpeAtRep(e.target.value === "" ? null : Number(e.target.value))}
-            className="min-h-11 w-14 rounded-lg border border-zinc-300 px-2 py-1 text-center dark:border-zinc-700 dark:bg-zinc-900"
+      {!isMobility && (
+        <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+          <label className="flex min-h-11 items-center gap-1 py-2">
+            ¿A qué rep sentiste el RPE?
+            <input
+              inputMode="numeric"
+              value={rpeAtRep ?? ""}
+              onChange={(e) => setRpeAtRep(e.target.value === "" ? null : Number(e.target.value))}
+              className="min-h-11 w-14 rounded-lg border border-zinc-300 px-2 py-1 text-center dark:border-zinc-700 dark:bg-zinc-900"
+            />
+          </label>
+          <label className="flex min-h-11 items-center gap-1.5 py-2">
+            <input
+              type="checkbox"
+              checked={isFailure}
+              onChange={(e) => setIsFailure(e.target.checked)}
+              className="h-5 w-5"
+            />
+            Fallo técnico
+          </label>
+        </div>
+      )}
+
+      {isMobility && (
+        <label className="flex flex-col gap-1 text-sm">
+          Observaciones
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={2}
+            placeholder="Rango, molestia, lado más limitado..."
+            className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-900"
           />
         </label>
-        <label className="flex min-h-11 items-center gap-1.5 py-2">
-          <input
-            type="checkbox"
-            checked={isFailure}
-            onChange={(e) => setIsFailure(e.target.checked)}
-            className="h-5 w-5"
-          />
-          Fallo técnico
-        </label>
-      </div>
+      )}
 
       <button
         type="button"

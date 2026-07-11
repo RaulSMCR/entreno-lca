@@ -101,6 +101,9 @@ export function OneRmDayFlow({ userId, rehabPhase }: { userId: string; rehabPhas
             Ver estándares
           </Link>
         </div>
+        <Link href="/perfil" className="min-h-11 rounded-lg border border-zinc-300 px-4 py-2 text-center text-sm font-medium dark:border-zinc-700">
+          Volver a pantalla principal
+        </Link>
       </div>
     );
   }
