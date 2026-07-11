@@ -182,8 +182,8 @@ function OneRmExercise({
   }
 
   function logAttempt(success: boolean) {
-    if (!currentAttempt) return;
-    setAttempts((prev) => [...prev, { pctOfE1rm: currentAttempt.pctOfE1rm, loadKg: currentAttempt.targetLoadKg, success }]);
+    if (!phase) return;
+    setAttempts((prev) => [...prev, { pctOfE1rm: phase.pctOfE1rm, loadKg: phase.targetLoadKg, success }]);
     setResting(true);
   }
 
