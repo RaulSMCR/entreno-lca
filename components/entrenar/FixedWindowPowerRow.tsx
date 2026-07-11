@@ -168,23 +168,26 @@ export function FixedWindowPowerRow({
         <span className="text-sm text-zinc-500 dark:text-zinc-400">reps completadas</span>
       </div>
 
-      <div className="flex flex-wrap gap-1.5" role="group" aria-label="RPE percibido">
-        {RPE_STEPS.map((r) => (
-          <button
-            key={r}
-            type="button"
-            aria-pressed={rpe === r ? "true" : "false"}
-            aria-label={`RPE ${r}`}
-            onClick={() => setRpe(r)}
-            className={`min-h-11 min-w-11 rounded-lg border px-3 py-2 text-sm ${
-              rpe === r
-                ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
-                : "border-zinc-300 dark:border-zinc-700"
-            }`}
-          >
-            {r}
-          </button>
-        ))}
+      <div className="flex flex-col gap-1">
+        <span className="text-sm text-zinc-500 dark:text-zinc-400">RPE percibido (esfuerzo)</span>
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="RPE percibido">
+          {RPE_STEPS.map((r) => (
+            <button
+              key={r}
+              type="button"
+              aria-pressed={rpe === r ? "true" : "false"}
+              aria-label={`RPE ${r}`}
+              onClick={() => setRpe(r)}
+              className={`min-h-11 min-w-11 rounded-lg border px-3 py-2 text-sm ${
+                rpe === r
+                  ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+                  : "border-zinc-300 dark:border-zinc-700"
+              }`}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
       </div>
 
       <button

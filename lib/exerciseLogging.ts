@@ -22,6 +22,9 @@ export type LoggingFieldConfig = {
   showReps: boolean;
   /** Cronómetro de cuenta arriba (holds isométricos y movilidad por tiempo). */
   showStopwatch: boolean;
+  /** RPE de esfuerzo (6-10) — escala pensada para entrenamiento con carga, no
+   *  aplica a ejercicios sin peso (cardio, isometría, movilidad). */
+  showRpe: boolean;
   /** Toggle izquierda/derecha/ambos. */
   showSide: boolean;
   /** Slider 0-10 de restricción de rango de movimiento percibido. */
@@ -41,6 +44,7 @@ const SCHEMAS: Record<ExercisePurpose, LoggingFieldConfig> = {
     showLoad: true,
     showReps: true,
     showStopwatch: false,
+    showRpe: true,
     showSide: false,
     showRomRpe: false,
     showRpeAtRep: true,
@@ -54,6 +58,7 @@ const SCHEMAS: Record<ExercisePurpose, LoggingFieldConfig> = {
     showLoad: false,
     showReps: false,
     showStopwatch: true,
+    showRpe: false,
     showSide: false,
     showRomRpe: false,
     showRpeAtRep: false,
@@ -67,6 +72,7 @@ const SCHEMAS: Record<ExercisePurpose, LoggingFieldConfig> = {
     showLoad: false,
     showReps: true,
     showStopwatch: false,
+    showRpe: false,
     showSide: true,
     showRomRpe: true,
     showRpeAtRep: false,
@@ -80,6 +86,7 @@ const SCHEMAS: Record<ExercisePurpose, LoggingFieldConfig> = {
     showLoad: false,
     showReps: false,
     showStopwatch: true,
+    showRpe: false,
     showSide: true,
     showRomRpe: false,
     showRpeAtRep: false,
@@ -93,6 +100,7 @@ const SCHEMAS: Record<ExercisePurpose, LoggingFieldConfig> = {
     showLoad: true,
     showReps: true,
     showStopwatch: false,
+    showRpe: false,
     showSide: false,
     showRomRpe: false,
     showRpeAtRep: false,
@@ -106,6 +114,7 @@ const SCHEMAS: Record<ExercisePurpose, LoggingFieldConfig> = {
     showLoad: true,
     showReps: true,
     showStopwatch: false,
+    showRpe: true,
     showSide: false,
     showRomRpe: false,
     showRpeAtRep: false,
@@ -119,6 +128,7 @@ const SCHEMAS: Record<ExercisePurpose, LoggingFieldConfig> = {
     showLoad: false,
     showReps: false,
     showStopwatch: false,
+    showRpe: false,
     showSide: false,
     showRomRpe: false,
     showRpeAtRep: false,

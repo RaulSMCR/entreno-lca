@@ -3,10 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { db, newId, nowIso, type LocalSetLog } from "@/lib/db";
 
-// Igual que en SetRow.tsx — duplicado a propósito (mismo criterio ya usado en
-// el resto del código para constantes chicas).
-const RPE_STEPS = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
-
 type CardioStatus = "short" | "met" | "exceeded";
 
 const STATUS_LABEL: Record<CardioStatus, string> = {
@@ -57,7 +53,6 @@ export function CardioSetRow({
   const [editing, setEditing] = useState(!existing);
   const [elapsed, setElapsed] = useState(existing?.actual_duration_seconds ?? 0);
   const [running, setRunning] = useState(false);
-  const [rpe, setRpe] = useState<number | null>(existing?.rpe_reported ?? null);
   const [reading, setReading] = useState(existing?.actual_reps ?? 0);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -98,7 +93,7 @@ export function CardioSetRow({
       target_reps: null,
       actual_reps: reading > 0 ? reading : null,
       actual_duration_seconds: elapsed,
-      rpe_reported: rpe,
+      rpe_reported: null,
       rpe_at_rep: null,
       is_failure: false,
       note: null,
@@ -122,7 +117,6 @@ export function CardioSetRow({
           Serie {setNumber}: {formatMMSS(existingSeconds)}
           {existingStatus ? ` · ${STATUS_LABEL[existingStatus]}` : ""}
           {existing.actual_reps != null ? ` · ${existing.actual_reps} (lectura de la máquina)` : ""}
-          {existing.rpe_reported != null ? ` · RPE ${existing.rpe_reported}` : ""}
         </span>
         <button
           type="button"
@@ -175,25 +169,6 @@ export function CardioSetRow({
           className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-900"
         />
       </label>
-
-      <div className="flex flex-wrap gap-1.5" role="group" aria-label="RPE percibido">
-        {RPE_STEPS.map((r) => (
-          <button
-            key={r}
-            type="button"
-            aria-pressed={rpe === r ? "true" : "false"}
-            aria-label={`RPE ${r}`}
-            onClick={() => setRpe(r)}
-            className={`min-h-11 min-w-11 rounded-lg border px-3 py-2 text-sm ${
-              rpe === r
-                ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
-                : "border-zinc-300 dark:border-zinc-700"
-            }`}
-          >
-            {r}
-          </button>
-        ))}
-      </div>
 
       <button
         type="button"
