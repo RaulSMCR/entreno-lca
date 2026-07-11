@@ -11,6 +11,7 @@ import { ResumenView } from "./ResumenView";
 import { estimateSessionTime, type SlotWithExercise } from "@/lib/session-time";
 import { analyzeSessionPatterns, type SkipPattern } from "@/lib/skip-patterns";
 import { initSessionExerciseStatuses } from "@/lib/session-exercise";
+import { ensureRestDayTemplate } from "@/lib/rest-day";
 
 type View = "loading" | "hoy" | "sesion" | "resumen";
 
@@ -52,7 +53,15 @@ export function EntrenarClient({ userId }: { userId: string }) {
         setSession(existing);
         setView("sesion");
       } else {
-        setSelectedTemplateId(weeklyEntry?.day_template_id ?? "");
+        // Día de descanso (sin plantilla asignada): en vez de quedar vacío,
+        // se completa con un duplicado de la movilidad del día anterior del
+        // ciclo semanal. Seguro de recrear acá porque todavía no hay sesión
+        // de hoy que referencie esos template_slots.
+        const restTemplateId = !weeklyEntry?.day_template_id
+          ? await ensureRestDayTemplate(userId, weekday)
+          : null;
+        if (cancelled) return;
+        setSelectedTemplateId(weeklyEntry?.day_template_id ?? restTemplateId ?? "");
         setView("hoy");
       }
     })();
