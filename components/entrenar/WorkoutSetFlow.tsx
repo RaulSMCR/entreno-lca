@@ -369,7 +369,7 @@ export function WorkoutSetFlow({
 
       for (const exerciseId of exerciseIds) {
         const exercise = await db.exercises.get(exerciseId);
-        if (!exercise || exercise.unit !== "kg") continue;
+        if (!exercise || exercise.purpose !== "fuerza_carga") continue;
         const sets = allLogs
           .filter(
             (l) =>
@@ -429,7 +429,7 @@ export function WorkoutSetFlow({
         const recentPhysicalDiscomfort = detected.some((p) => p.type === "physical_concern");
         const slotLabel = (slotsPerExercise.get(slot.exercise_id) ?? 0) > 1 ? schemeLabel(slot) : null;
 
-        if (exercise.category === "conditioning") {
+        if (exercise.purpose === "cardio_intervalos") {
           const cardioLogs = allLogs
             .filter((l) => l.template_slot_id === slot.id && l._deleted !== 1 && l.actual_duration_seconds != null)
             .sort((a, b) => b.created_at.localeCompare(a.created_at));
@@ -445,7 +445,7 @@ export function WorkoutSetFlow({
             actualSeconds,
             status: targetSeconds != null ? classifyCardio(actualSeconds, targetSeconds) : null,
           });
-        } else if (exercise.unit === "kg") {
+        } else if (exercise.purpose === "fuerza_carga") {
           const e1rmResult = e1rmByExercise.get(slot.exercise_id);
           if (!e1rmResult) continue; // sin series válidas para e1RM (rpe/reps/carga faltantes)
 

@@ -248,6 +248,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          purpose: string
           rm_base_kg: number | null
           unit: string
           updated_at: string
@@ -263,6 +264,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          purpose?: string
           rm_base_kg?: number | null
           unit: string
           updated_at?: string
@@ -278,6 +280,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          purpose?: string
           rm_base_kg?: number | null
           unit?: string
           updated_at?: string
@@ -507,10 +510,13 @@ export type Database = {
           id: string
           is_failure: boolean
           note: string | null
+          posture_ok: boolean | null
+          rom_rpe: number | null
           rpe_at_rep: number | null
           rpe_reported: number | null
           session_id: string
           set_number: number
+          side: string | null
           synced_from_local: boolean
           target_load_kg: number | null
           target_reps: number | null
@@ -527,10 +533,13 @@ export type Database = {
           id?: string
           is_failure?: boolean
           note?: string | null
+          posture_ok?: boolean | null
+          rom_rpe?: number | null
           rpe_at_rep?: number | null
           rpe_reported?: number | null
           session_id: string
           set_number: number
+          side?: string | null
           synced_from_local?: boolean
           target_load_kg?: number | null
           target_reps?: number | null
@@ -547,10 +556,13 @@ export type Database = {
           id?: string
           is_failure?: boolean
           note?: string | null
+          posture_ok?: boolean | null
+          rom_rpe?: number | null
           rpe_at_rep?: number | null
           rpe_reported?: number | null
           session_id?: string
           set_number?: number
+          side?: string | null
           synced_from_local?: boolean
           target_load_kg?: number | null
           target_reps?: number | null

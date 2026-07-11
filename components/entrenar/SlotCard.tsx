@@ -6,8 +6,11 @@ import { db, type LocalTemplateSlot } from "@/lib/db";
 import { resolveAvailableLoads, snapLoad, type EquipmentLoadConfig } from "@/lib/loads";
 import { targetLoad } from "@/lib/engine";
 import { getObjectiveFromSlot, type TrainingObjective } from "@/lib/training-theory";
+import { getLoggingSchema } from "@/lib/exerciseLogging";
 import { SetRow } from "./SetRow";
 import { CardioSetRow } from "./CardioSetRow";
+import { DistanceLoadRow } from "./DistanceLoadRow";
+import { FixedWindowPowerRow } from "./FixedWindowPowerRow";
 import { RestTimer } from "./RestTimer";
 import { PreSetCountdown } from "./PreSetCountdown";
 
@@ -108,10 +111,11 @@ export function SlotCard({
 
   const resolvedObjective = objective ?? getObjectiveFromSlot(slot, exercise.unit);
   const equipmentConfig: EquipmentLoadConfig = (equipment as EquipmentLoadConfig | undefined) ?? NO_EQUIPMENT;
-  const loadOptions = exercise.unit === "kg" ? resolveAvailableLoads(equipmentConfig) : [];
+  const isFuerzaCarga = exercise.purpose === "fuerza_carga";
+  const loadOptions = isFuerzaCarga ? resolveAvailableLoads(equipmentConfig) : [];
 
   let target: { ideal: number; real: number } | null = null;
-  if (exercise.unit === "kg" && slot.block === "principal" && slot.pct_max != null && exercise.e1rm_kg != null) {
+  if (isFuerzaCarga && slot.block === "principal" && slot.pct_max != null && exercise.e1rm_kg != null) {
     target = targetLoad(exercise.e1rm_kg, slot.pct_max, equipmentConfig);
   }
 
@@ -125,7 +129,7 @@ export function SlotCard({
   const snappedVoicePrefill: VoicePrefill | undefined = voicePrefill && {
     ...voicePrefill,
     load:
-      voicePrefill.load != null && exercise.unit === "kg"
+      voicePrefill.load != null && isFuerzaCarga
         ? snapLoad(voicePrefill.load, equipmentConfig, "nearest").real
         : voicePrefill.load,
   };
@@ -153,7 +157,7 @@ export function SlotCard({
             {showPrepBanner && phase === "countdown" && (
               <PreSetCountdown objective={resolvedObjective} onDone={() => setPhase("done")} />
             )}
-            {exercise.category === "conditioning" ? (
+            {exercise.purpose === "cardio_intervalos" ? (
               <CardioSetRow
                 sessionId={sessionId}
                 userId={userId}
@@ -161,6 +165,26 @@ export function SlotCard({
                 templateSlotId={slot.id}
                 setNumber={setNumber}
                 targetSeconds={slot.target_duration_seconds}
+                existing={logs?.find((l) => l.set_number === setNumber)}
+              />
+            ) : exercise.purpose === "distancia_carga" ? (
+              <DistanceLoadRow
+                sessionId={sessionId}
+                userId={userId}
+                exerciseId={slot.exercise_id}
+                templateSlotId={slot.id}
+                setNumber={setNumber}
+                existing={logs?.find((l) => l.set_number === setNumber)}
+              />
+            ) : exercise.purpose === "potencia_tiempo_fijo" ? (
+              <FixedWindowPowerRow
+                sessionId={sessionId}
+                userId={userId}
+                exerciseId={slot.exercise_id}
+                templateSlotId={slot.id}
+                setNumber={setNumber}
+                windowSeconds={getLoggingSchema(exercise.purpose).fixedWindowSeconds ?? 20}
+                defaultLoad={exercise.rm_base_kg}
                 existing={logs?.find((l) => l.set_number === setNumber)}
               />
             ) : (
@@ -171,7 +195,7 @@ export function SlotCard({
                 templateSlotId={slot.id}
                 setNumber={setNumber}
                 unit={exercise.unit as "kg" | "seconds" | "meters" | "intervals" | "reps"}
-                category={exercise.category}
+                schema={getLoggingSchema(exercise.purpose)}
                 loadOptions={loadOptions}
                 defaults={defaults}
                 existing={logs?.find((l) => l.set_number === setNumber)}

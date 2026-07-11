@@ -48,7 +48,7 @@ export function ProgresoClient() {
     () =>
       db.exercises
         .toCollection()
-        .filter((e) => e.block === "principal" && e.unit === "kg" && e.is_active !== false)
+        .filter((e) => e.block === "principal" && e.purpose === "fuerza_carga" && e.is_active !== false)
         .toArray(),
     [],
     []
