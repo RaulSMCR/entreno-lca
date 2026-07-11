@@ -58,7 +58,7 @@ export function EntrenarClient({ userId }: { userId: string }) {
         // ciclo semanal. Seguro de recrear acá porque todavía no hay sesión
         // de hoy que referencie esos template_slots.
         const restTemplateId = !weeklyEntry?.day_template_id
-          ? await ensureRestDayTemplate(userId, weekday)
+          ? await ensureRestDayTemplate(userId)
           : null;
         if (cancelled) return;
         setSelectedTemplateId(weeklyEntry?.day_template_id ?? restTemplateId ?? "");

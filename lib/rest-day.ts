@@ -9,18 +9,17 @@ import { yesterdayWeekday } from "./date";
 
 const MOBILITY_PURPOSES = new Set(["movilidad_repeticiones", "movilidad_tiempo"]);
 
-function restDayTemplateCode(restWeekday: string): string {
-  const normalized = restWeekday
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toUpperCase();
-  return `DESCANSO_${normalized}`;
-}
+// "DA" (Descanso Activo) — mismo código para cualquier día de descanso, igual
+// convención corta que A1/A2/B1/B2/C1/C2. Si hay más de un weekday de
+// descanso en la semana comparten esta única plantilla: se regenera fresca a
+// partir del día anterior cada vez que se abre un descanso, así que siempre
+// refleja la movilidad de ayer, no la del último descanso visitado.
+const REST_DAY_CODE = "DA";
 
 // Idempotente y solo seguro de llamar ANTES de que exista una sesión de hoy:
 // si ya hay set_logs/session_exercise_statuses apuntando a los template_slots
 // de una corrida anterior, recrearlos los dejaría huérfanos.
-export async function ensureRestDayTemplate(userId: string, restWeekday: string): Promise<string | null> {
+export async function ensureRestDayTemplate(userId: string): Promise<string | null> {
   const previousWeekday = yesterdayWeekday();
   const previousEntry = await db.weekly_schedule.where("weekday").equals(previousWeekday).first();
   if (!previousEntry?.day_template_id) return null;
@@ -41,23 +40,22 @@ export async function ensureRestDayTemplate(userId: string, restWeekday: string)
   if (mobilitySlots.length === 0) return null;
 
   const now = nowIso();
-  const code = restDayTemplateCode(restWeekday);
 
-  let template = await db.day_templates.where("code").equals(code).first();
+  let template = await db.day_templates.where("code").equals(REST_DAY_CODE).first();
   if (!template) {
     template = {
       id: newId(),
       user_id: userId,
-      code,
-      title: "Descanso — Movilidad",
-      focus: `Duplicado de ${previousEntry.weekday}`,
+      code: REST_DAY_CODE,
+      title: "Descanso Activo",
+      focus: `Movilidad de ${previousEntry.weekday}`,
       created_at: now,
       updated_at: now,
       _dirty: 1,
       _deleted: 0,
     };
   } else {
-    template = { ...template, updated_at: now, _dirty: 1 };
+    template = { ...template, focus: `Movilidad de ${previousEntry.weekday}`, updated_at: now, _dirty: 1 };
   }
   await db.day_templates.put(template);
 
