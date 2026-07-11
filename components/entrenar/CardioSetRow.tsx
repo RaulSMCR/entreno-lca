@@ -58,6 +58,7 @@ export function CardioSetRow({
   const [elapsed, setElapsed] = useState(existing?.actual_duration_seconds ?? 0);
   const [running, setRunning] = useState(false);
   const [rpe, setRpe] = useState<number | null>(existing?.rpe_reported ?? null);
+  const [reading, setReading] = useState(existing?.actual_reps ?? 0);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -95,7 +96,7 @@ export function CardioSetRow({
       target_load_kg: null,
       actual_load_kg: null,
       target_reps: null,
-      actual_reps: null,
+      actual_reps: reading > 0 ? reading : null,
       actual_duration_seconds: elapsed,
       rpe_reported: rpe,
       rpe_at_rep: null,
@@ -120,6 +121,7 @@ export function CardioSetRow({
         <span>
           Serie {setNumber}: {formatMMSS(existingSeconds)}
           {existingStatus ? ` · ${STATUS_LABEL[existingStatus]}` : ""}
+          {existing.actual_reps != null ? ` · ${existing.actual_reps} (lectura de la máquina)` : ""}
           {existing.rpe_reported != null ? ` · RPE ${existing.rpe_reported}` : ""}
         </span>
         <button
@@ -161,6 +163,18 @@ export function CardioSetRow({
           </span>
         )}
       </div>
+
+      <label className="flex flex-col gap-1 text-sm">
+        Distancia / lectura de la máquina (metros, watts, calorías...)
+        <input
+          aria-label="Lectura de la máquina"
+          inputMode="decimal"
+          value={reading}
+          onChange={(e) => setReading(Number(e.target.value) || 0)}
+          placeholder="Lo que muestre la pantalla del equipo al terminar"
+          className="min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-900"
+        />
+      </label>
 
       <div className="flex flex-wrap gap-1.5" role="group" aria-label="RPE percibido">
         {RPE_STEPS.map((r) => (

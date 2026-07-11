@@ -229,6 +229,7 @@ export function ResumenView({
               <p className="text-sm text-zinc-700 dark:text-zinc-300">
                 {formatMMSS(item.actualSeconds)}
                 {item.targetSeconds != null && ` de ${formatMMSS(item.targetSeconds)} de meta`}
+                {item.reading != null && ` · ${item.reading} (lectura de la máquina)`}
               </p>
               {item.status && (
                 <span

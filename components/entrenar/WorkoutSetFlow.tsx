@@ -54,6 +54,9 @@ export type SessionSummary =
       targetSeconds: number | null;
       actualSeconds: number;
       status: "short" | "met" | "exceeded" | null;
+      /** Distancia/lectura de la máquina (metros, watts, calorías...) — unidad
+       *  ambigua a propósito, el usuario ve su propio historial. */
+      reading: number | null;
     };
 
 export type WorkoutFinishResult = {
@@ -443,6 +446,7 @@ export function WorkoutSetFlow({
             slotLabel,
             targetSeconds,
             actualSeconds,
+            reading: cardioLogs[0].actual_reps,
             status: targetSeconds != null ? classifyCardio(actualSeconds, targetSeconds) : null,
           });
         } else if (exercise.purpose === "fuerza_carga") {
