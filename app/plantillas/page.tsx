@@ -15,6 +15,7 @@ export default async function PlantillasPage() {
 
   return (
     <PlantillasClient
+      userId={userData.user.id}
       initialTemplates={templates ?? []}
       initialSlots={slots ?? []}
       exercises={exercises ?? []}

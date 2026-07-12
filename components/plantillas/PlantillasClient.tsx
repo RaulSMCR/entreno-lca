@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/database";
 import { SlotForm, type SlotFormValues } from "./SlotForm";
+import { ensureRestDayTemplate } from "@/lib/rest-day";
+import { pullRemote, pushPending } from "@/lib/sync";
 
 type TemplateRow = Database["public"]["Tables"]["day_templates"]["Row"];
 type SlotRow = Database["public"]["Tables"]["template_slots"]["Row"];
@@ -26,10 +28,12 @@ function slotSummary(slot: SlotRow): string {
 }
 
 export function PlantillasClient({
+  userId,
   initialTemplates,
   initialSlots,
   exercises,
 }: {
+  userId: string;
   initialTemplates: TemplateRow[];
   initialSlots: SlotRow[];
   exercises: ExerciseOption[];
@@ -57,6 +61,25 @@ export function PlantillasClient({
     setTemplates(t ?? []);
     setSlots(s ?? []);
   }
+
+  // "DA" (Descanso Activo): esta pantalla lee/escribe Supabase directo, no
+  // Dexie — así que además de crear/refrescar la plantilla local-first hay
+  // que empujarla y volver a traer para que aparezca acá sin esperar a que
+  // el usuario abra /entrenar el día de descanso.
+  useEffect(() => {
+    (async () => {
+      try {
+        await pullRemote();
+        const created = await ensureRestDayTemplate(userId);
+        if (!created) return;
+        await pushPending();
+        await refresh();
+      } catch {
+        // sin red o falló: la pantalla sigue mostrando lo que vino del server
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   async function saveMeta() {
     if (!selectedTemplate) return;

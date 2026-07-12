@@ -55,11 +55,14 @@ export function EntrenarClient({ userId }: { userId: string }) {
       } else {
         // Día de descanso (sin plantilla asignada): en vez de quedar vacío,
         // se completa con un duplicado de la movilidad del día anterior del
-        // ciclo semanal. Seguro de recrear acá porque todavía no hay sesión
-        // de hoy que referencie esos template_slots.
-        const restTemplateId = !weeklyEntry?.day_template_id
-          ? await ensureRestDayTemplate(userId)
-          : null;
+        // ciclo semanal. Se llama siempre (no solo cuando hoy es descanso)
+        // para que la plantilla "DA" quede creada/fresca en Plantillas apenas
+        // se abre la app, sin depender de visitar justo el día de descanso;
+        // si hoy ya tiene plantilla asignada, weeklyEntry.day_template_id
+        // gana igual gracias al `??`. ensureRestDayTemplate es seguro de
+        // llamar en cualquier momento (no toca una plantilla con series ya
+        // registradas).
+        const restTemplateId = await ensureRestDayTemplate(userId);
         if (cancelled) return;
         setSelectedTemplateId(weeklyEntry?.day_template_id ?? restTemplateId ?? "");
         setView("hoy");
