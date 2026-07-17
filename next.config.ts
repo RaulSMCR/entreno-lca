@@ -25,11 +25,11 @@ const withSerwist = withSerwistInit({
   additionalPrecacheEntries: [
     { url: "/", revision: buildRevision },
     { url: "/manifest.webmanifest", revision: buildRevision },
-    { url: "/icon.svg", revision: publicRevision("/icon.svg") },
-    { url: "/icons/icon-192x192.png", revision: publicRevision("/icons/icon-192x192.png") },
-    { url: "/icons/icon-512x512.png", revision: publicRevision("/icons/icon-512x512.png") },
-    { url: "/icons/icon-maskable-512x512.png", revision: publicRevision("/icons/icon-maskable-512x512.png") },
-    { url: "/icons/apple-touch-icon.png", revision: publicRevision("/icons/apple-touch-icon.png") },
+    { url: "/new-icon.svg", revision: publicRevision("/new-icon.svg") },
+    { url: "/icons/icon-192x192.png?v=cultiva", revision: publicRevision("/icons/icon-192x192.png") },
+    { url: "/icons/icon-512x512.png?v=cultiva", revision: publicRevision("/icons/icon-512x512.png") },
+    { url: "/icons/icon-maskable-512x512.png?v=cultiva", revision: publicRevision("/icons/icon-maskable-512x512.png") },
+    { url: "/icons/apple-touch-icon.png?v=cultiva", revision: publicRevision("/icons/apple-touch-icon.png") },
   ],
 });
 
