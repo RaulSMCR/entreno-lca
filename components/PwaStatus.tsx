@@ -49,9 +49,15 @@ export function PwaStatus() {
   );
 
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.ready.then(() => setSwReady(true));
+    if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) {
+      return;
     }
+
+    navigator.serviceWorker
+      .register("/sw.js", { scope: "/" })
+      .then(() => navigator.serviceWorker.ready)
+      .then(() => setSwReady(true))
+      .catch(() => setSwReady(false));
   }, []);
 
   return (

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PwaStatus } from "@/components/PwaStatus";
+import { PwaInstallButton } from "@/components/PwaInstallButton";
 import { TrackingReminders } from "@/components/perfil/TrackingReminders";
 
 export default function Home() {
@@ -20,6 +21,7 @@ export default function Home() {
         </div>
 
         <PwaStatus />
+        <PwaInstallButton />
 
         <TrackingReminders />
 

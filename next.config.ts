@@ -25,11 +25,12 @@ const withSerwist = withSerwistInit({
   additionalPrecacheEntries: [
     { url: "/", revision: buildRevision },
     { url: "/manifest.webmanifest", revision: buildRevision },
-    { url: "/new-icon.svg", revision: publicRevision("/new-icon.svg") },
-    { url: "/icons/icon-192x192.png?v=cultiva", revision: publicRevision("/icons/icon-192x192.png") },
-    { url: "/icons/icon-512x512.png?v=cultiva", revision: publicRevision("/icons/icon-512x512.png") },
-    { url: "/icons/icon-maskable-512x512.png?v=cultiva", revision: publicRevision("/icons/icon-maskable-512x512.png") },
-    { url: "/icons/apple-touch-icon.png?v=cultiva", revision: publicRevision("/icons/apple-touch-icon.png") },
+    { url: "/CULTIVA_icono_app.svg", revision: publicRevision("/CULTIVA_icono_app.svg") },
+    { url: "/icons/icon-192x192.png?v=cultiva-icono", revision: publicRevision("/icons/icon-192x192.png") },
+    { url: "/icons/icon-512x512.png?v=cultiva-icono", revision: publicRevision("/icons/icon-512x512.png") },
+    { url: "/icons/icon-maskable-512x512.png?v=cultiva-icono", revision: publicRevision("/icons/icon-maskable-512x512.png") },
+    { url: "/icons/apple-touch-icon.png?v=cultiva-icono", revision: publicRevision("/icons/apple-touch-icon.png") },
+    { url: "/icons/cultiva-logo-512.png?v=cultiva-logo", revision: publicRevision("/icons/cultiva-logo-512.png") },
   ],
 });
 

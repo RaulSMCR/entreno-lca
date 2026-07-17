@@ -19,13 +19,13 @@ export const metadata: Metadata = {
   description: "Mente sana en cuerpo sano.",
   icons: {
     icon: [
-      { url: "/new-icon.svg", sizes: "any", type: "image/svg+xml" },
-      { url: "/icons/icon-192x192.png?v=cultiva", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon-512x512.png?v=cultiva", sizes: "512x512", type: "image/png" },
+      { url: "/CULTIVA_icono_app.svg", sizes: "any", type: "image/svg+xml" },
+      { url: "/icons/icon-192x192.png?v=cultiva-icono", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png?v=cultiva-icono", sizes: "512x512", type: "image/png" },
     ],
-    shortcut: { url: "/new-icon.svg", sizes: "any", type: "image/svg+xml" },
+    shortcut: { url: "/CULTIVA_icono_app.svg", sizes: "any", type: "image/svg+xml" },
     apple: [
-      { url: "/icons/apple-touch-icon.png?v=cultiva", sizes: "180x180", type: "image/png" },
+      { url: "/icons/apple-touch-icon.png?v=cultiva-icono", sizes: "180x180", type: "image/png" },
     ],
   },
   appleWebApp: {
@@ -58,7 +58,7 @@ export default function RootLayout({
           className="fixed right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-50 block h-16 w-16 overflow-hidden rounded-xl border border-brand-200 bg-background p-1.5 shadow-sm sm:h-20 sm:w-20"
         >
           <Image
-            src="/icons/icon-512x512.png?v=cultiva"
+            src="/icons/cultiva-logo-512.png?v=cultiva-logo"
             alt="Cultiva"
             width={512}
             height={512}

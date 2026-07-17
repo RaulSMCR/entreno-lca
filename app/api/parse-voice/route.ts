@@ -1,17 +1,19 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
+import { createClient } from "@/lib/supabase/server";
 
 const RequestSchema = z.object({
-  transcript: z.string().min(1),
+  transcript: z.string().trim().min(1).max(4000),
   contexto: z
     .array(
       z.object({
-        name: z.string(),
+        name: z.string().trim().min(1).max(160),
         unit: z.enum(["kg", "seconds", "meters", "intervals", "reps"]),
-        loadOptions: z.array(z.number()).optional(),
+        loadOptions: z.array(z.number().finite()).max(100).optional(),
       })
     )
-    .min(1),
+    .min(1)
+    .max(100),
 });
 
 const VoiceSetSchema = z.object({
@@ -37,6 +39,12 @@ Devolvé EXCLUSIVAMENTE un array JSON (sin markdown, sin texto adicional) con un
 - No inventés valores que no se mencionaron.`;
 
 export async function POST(request: Request) {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) {
+    return Response.json({ error: "No autorizado." }, { status: 401 });
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return Response.json({ error: "ANTHROPIC_API_KEY no configurada en el servidor." }, { status: 500 });
