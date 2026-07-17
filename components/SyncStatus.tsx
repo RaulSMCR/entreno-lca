@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, MIRRORED_TABLES } from "@/lib/db";
 import { syncAll } from "@/lib/sync";
@@ -21,11 +21,29 @@ const DOT: Record<Status, string> = {
   synced: "bg-emerald-500",
 };
 
+function subscribeOnline(onStoreChange: () => void) {
+  window.addEventListener("online", onStoreChange);
+  window.addEventListener("offline", onStoreChange);
+  return () => {
+    window.removeEventListener("online", onStoreChange);
+    window.removeEventListener("offline", onStoreChange);
+  };
+}
+
+function getOnlineSnapshot() {
+  return navigator.onLine;
+}
+
+function getServerOnlineSnapshot() {
+  return true;
+}
+
 export function SyncStatus() {
-  // typeof window (no navigator): Node SSR define un navigator parcial (sin
-  // onLine) para el polyfill de fetch, así que chequear navigator a secas da
-  // un mismatch de hidratación falso "offline" en el render del servidor.
-  const [online, setOnline] = useState(() => (typeof window === "undefined" ? true : navigator.onLine));
+  const online = useSyncExternalStore(
+    subscribeOnline,
+    getOnlineSnapshot,
+    getServerOnlineSnapshot
+  );
   const [syncing, setSyncing] = useState(false);
 
   const pendingCount = useLiveQuery(async () => {
@@ -35,7 +53,6 @@ export function SyncStatus() {
 
   useEffect(() => {
     const goOnline = async () => {
-      setOnline(true);
       setSyncing(true);
       try {
         await syncAll();
@@ -43,12 +60,9 @@ export function SyncStatus() {
         setSyncing(false);
       }
     };
-    const goOffline = () => setOnline(false);
     window.addEventListener("online", goOnline);
-    window.addEventListener("offline", goOffline);
     return () => {
       window.removeEventListener("online", goOnline);
-      window.removeEventListener("offline", goOffline);
     };
   }, []);
 

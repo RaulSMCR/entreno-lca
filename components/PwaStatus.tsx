@@ -1,35 +1,57 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+
+const STANDALONE_QUERY = "(display-mode: standalone)";
+
+function subscribeOnline(onStoreChange: () => void) {
+  window.addEventListener("online", onStoreChange);
+  window.addEventListener("offline", onStoreChange);
+  return () => {
+    window.removeEventListener("online", onStoreChange);
+    window.removeEventListener("offline", onStoreChange);
+  };
+}
+
+function getOnlineSnapshot() {
+  return navigator.onLine;
+}
+
+function getServerOnlineSnapshot() {
+  return true;
+}
+
+function subscribeStandalone(onStoreChange: () => void) {
+  const displayMode = window.matchMedia(STANDALONE_QUERY);
+  displayMode.addEventListener("change", onStoreChange);
+  return () => displayMode.removeEventListener("change", onStoreChange);
+}
+
+function getStandaloneSnapshot() {
+  return window.matchMedia(STANDALONE_QUERY).matches;
+}
+
+function getServerStandaloneSnapshot() {
+  return false;
+}
 
 export function PwaStatus() {
-  // typeof window (no navigator): Node SSR define un navigator parcial (sin
-  // onLine) para el polyfill de fetch, así que chequear navigator a secas da
-  // un mismatch de hidratación falso "offline" en el render del servidor.
-  const [online, setOnline] = useState(() =>
-    typeof window === "undefined" ? true : navigator.onLine
+  const online = useSyncExternalStore(
+    subscribeOnline,
+    getOnlineSnapshot,
+    getServerOnlineSnapshot
   );
   const [swReady, setSwReady] = useState(false);
-  const [standalone] = useState(() =>
-    typeof window === "undefined"
-      ? false
-      : window.matchMedia("(display-mode: standalone)").matches
+  const standalone = useSyncExternalStore(
+    subscribeStandalone,
+    getStandaloneSnapshot,
+    getServerStandaloneSnapshot
   );
 
   useEffect(() => {
-    const goOnline = () => setOnline(true);
-    const goOffline = () => setOnline(false);
-    window.addEventListener("online", goOnline);
-    window.addEventListener("offline", goOffline);
-
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.ready.then(() => setSwReady(true));
     }
-
-    return () => {
-      window.removeEventListener("online", goOnline);
-      window.removeEventListener("offline", goOffline);
-    };
   }, []);
 
   return (
