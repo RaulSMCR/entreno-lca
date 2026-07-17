@@ -71,7 +71,7 @@ export function EntrenarClient({ userId }: { userId: string }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [userId]);
 
   const selectedTemplate = templates?.find((t) => t.id === selectedTemplateId);
 

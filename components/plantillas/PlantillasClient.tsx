@@ -78,7 +78,6 @@ export function PlantillasClient({
         // sin red o falló: la pantalla sigue mostrando lo que vino del server
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   async function saveMeta() {
