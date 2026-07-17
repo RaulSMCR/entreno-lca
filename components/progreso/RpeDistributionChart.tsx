@@ -15,7 +15,7 @@ export function RpeDistributionChart({ data }: { data: RpeBucket[] }) {
         <XAxis dataKey="rpe" tick={{ fontSize: 11 }} />
         <YAxis tick={{ fontSize: 11 }} width={30} allowDecimals={false} />
         <Tooltip formatter={(value) => [String(value), "Series"]} labelFormatter={(label) => `RPE ${label}`} />
-        <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="count" fill="#2B7073" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

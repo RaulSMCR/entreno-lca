@@ -20,7 +20,7 @@ export function E1rmChart({ history }: { history: TrendPoint[] }) {
         <XAxis dataKey="date" tickFormatter={shortDate} tick={{ fontSize: 11 }} />
         <YAxis tick={{ fontSize: 11 }} width={36} domain={["auto", "auto"]} />
         <Tooltip formatter={(value) => [`${Number(value).toFixed(1)}kg`, "e1RM"]} labelFormatter={(label) => shortDate(String(label))} />
-        <Line type="monotone" dataKey="e1rm" stroke="#10b981" strokeWidth={2} dot={{ r: 2 }} />
+        <Line type="monotone" dataKey="e1rm" stroke="#2B7073" strokeWidth={2} dot={{ r: 2 }} />
       </LineChart>
     </ResponsiveContainer>
   );

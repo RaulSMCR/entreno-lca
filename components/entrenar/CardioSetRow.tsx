@@ -175,7 +175,7 @@ export function CardioSetRow({
         onClick={save}
         disabled={running || elapsed === 0}
         aria-label="Guardar serie"
-        className="min-h-11 rounded-lg bg-emerald-600 px-4 py-3 text-center text-lg font-semibold text-white disabled:opacity-50"
+        className="min-h-11 rounded-lg bg-accent-600 px-4 py-3 text-center text-lg font-semibold text-brand-950 disabled:opacity-50"
       >
         ✓
       </button>

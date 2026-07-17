@@ -107,11 +107,11 @@ export function SessionNavigator({
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Abrir navegador de ejercicios"
-        className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-zinc-900 text-white shadow-lg dark:bg-zinc-50 dark:text-zinc-900"
+        className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg"
       >
         <span className="text-xl">☰</span>
         {total > 0 && (
-          <span className="absolute -top-1 -right-1 rounded-full bg-emerald-600 px-1.5 py-0.5 text-xs font-semibold text-white">
+          <span className="absolute -top-1 -right-1 rounded-full bg-accent-600 px-1.5 py-0.5 text-xs font-semibold text-brand-950">
             {Math.max(activeIndex + 1, 1)}/{total}
           </span>
         )}
@@ -151,7 +151,7 @@ export function SessionNavigator({
                 onClick={() => setOrderMode("recommended")}
                 className={`min-h-11 flex-1 rounded-lg border px-3 text-sm ${
                   orderMode === "recommended"
-                    ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+                    ? "border-brand-600 bg-brand-600 text-white"
                     : "border-zinc-300 dark:border-zinc-700"
                 }`}
               >
@@ -162,7 +162,7 @@ export function SessionNavigator({
                 onClick={() => setOrderMode("free")}
                 className={`min-h-11 flex-1 rounded-lg border px-3 text-sm ${
                   orderMode === "free"
-                    ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+                    ? "border-brand-600 bg-brand-600 text-white"
                     : "border-zinc-300 dark:border-zinc-700"
                 }`}
               >
@@ -262,7 +262,7 @@ export function SessionNavigator({
                     onFinishSession();
                   }
                 }}
-                className="min-h-11 w-full rounded-lg bg-zinc-900 px-4 py-3 text-center font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+                className="min-h-11 w-full rounded-lg bg-accent-600 px-4 py-3 text-center font-medium text-brand-950"
               >
                 Finalizar sesión
               </button>

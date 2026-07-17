@@ -58,7 +58,7 @@ export function CalibracionHomeClient({ rehabPhase }: { rehabPhase: RehabPhase |
                 {gate.enabled ? (
                   <Link
                     href={`/calibracion/${sessionType}`}
-                    className="min-h-11 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+                    className="min-h-11 rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-brand-950"
                   >
                     {done ? "Repetir" : "Iniciar"}
                   </Link>

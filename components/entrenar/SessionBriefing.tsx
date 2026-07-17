@@ -208,7 +208,7 @@ export function SessionBriefing({
               aria-pressed={readiness === r ? "true" : "false"}
               className={`h-11 flex-1 rounded-lg border text-base font-medium ${
                 readiness === r
-                  ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+                  ? "border-brand-600 bg-brand-600 text-white"
                   : "border-zinc-300 text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
               }`}
             >
@@ -221,7 +221,7 @@ export function SessionBriefing({
       <button
         type="button"
         onClick={onStart}
-        className="rounded-lg bg-zinc-900 px-4 py-3 text-center font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+        className="rounded-lg bg-accent-600 px-4 py-3 text-center font-medium text-brand-950"
       >
         ▶ Iniciar sesión
       </button>

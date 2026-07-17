@@ -277,7 +277,7 @@ export function ResumenView({
       <button
         type="button"
         onClick={onClose}
-        className="rounded-lg bg-zinc-900 px-4 py-3 text-center font-medium text-white dark:bg-zinc-50 dark:text-zinc-900 print:hidden"
+        className="rounded-lg bg-accent-600 px-4 py-3 text-center font-medium text-brand-950 print:hidden"
       >
         Listo
       </button>

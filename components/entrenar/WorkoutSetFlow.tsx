@@ -624,7 +624,7 @@ export function WorkoutSetFlow({
         type="button"
         onClick={handleFinish}
         disabled={finishing}
-        className="rounded-lg bg-zinc-900 px-4 py-3 text-center font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+        className="rounded-lg bg-accent-600 px-4 py-3 text-center font-medium text-brand-950 disabled:opacity-50"
       >
         {finishing ? "Cerrando…" : "Finalizar sesión"}
       </button>

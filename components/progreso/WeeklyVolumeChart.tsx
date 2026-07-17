@@ -23,7 +23,7 @@ export function WeeklyVolumeChart({ data }: { data: WeeklyVolumePoint[] }) {
           formatter={(value) => [`${Number(value).toFixed(0)}kg`, "Volumen"]}
           labelFormatter={(label) => `Semana del ${shortDate(String(label))}`}
         />
-        <Bar dataKey="totalKg" fill="#10b981" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="totalKg" fill="#2B7073" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

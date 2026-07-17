@@ -78,7 +78,7 @@ export function PesoClient({ userId, initialLogs }: { userId: string; initialLog
         <button
           type="submit"
           disabled={saving}
-          className="min-h-11 rounded-lg bg-zinc-900 px-4 py-2 font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+          className="min-h-11 rounded-lg bg-accent-600 px-4 py-2 font-medium text-brand-950 disabled:opacity-50"
         >
           {saving ? "Guardando…" : "Registrar"}
         </button>

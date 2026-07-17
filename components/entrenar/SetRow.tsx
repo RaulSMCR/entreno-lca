@@ -189,7 +189,7 @@ export function SetRow({
               onClick={() => setSide(opt.value)}
               className={`min-h-11 flex-1 rounded-lg border px-3 py-2 text-sm ${
                 side === opt.value
-                  ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+                  ? "border-brand-600 bg-brand-600 text-white"
                   : "border-zinc-300 dark:border-zinc-700"
               }`}
             >
@@ -250,7 +250,7 @@ export function SetRow({
                 onClick={() => setRpe(r)}
                 className={`min-h-11 min-w-11 rounded-lg border px-3 py-2 text-sm ${
                   rpe === r
-                    ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+                    ? "border-brand-600 bg-brand-600 text-white"
                     : "border-zinc-300 dark:border-zinc-700"
                 }`}
               >
@@ -274,7 +274,7 @@ export function SetRow({
                 onClick={() => setRomRpe(r)}
                 className={`min-h-11 min-w-11 rounded-lg border px-3 py-2 text-sm ${
                   romRpe === r
-                    ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+                    ? "border-brand-600 bg-brand-600 text-white"
                     : "border-zinc-300 dark:border-zinc-700"
                 }`}
               >
@@ -329,7 +329,7 @@ export function SetRow({
         type="button"
         onClick={save}
         aria-label="Guardar serie"
-        className="min-h-11 rounded-lg bg-emerald-600 px-4 py-3 text-center text-lg font-semibold text-white"
+        className="min-h-11 rounded-lg bg-accent-600 px-4 py-3 text-center text-lg font-semibold text-brand-950"
       >
         ✓
       </button>

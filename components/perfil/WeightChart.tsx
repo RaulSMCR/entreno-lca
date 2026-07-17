@@ -24,7 +24,7 @@ export function WeightChart({ data }: { data: WeightPoint[] }) {
           formatter={(value) => [`${Number(value).toFixed(1)}kg`, "Peso"]}
           labelFormatter={(label) => shortDate(String(label))}
         />
-        <Line type="monotone" dataKey="weight_kg" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
+        <Line type="monotone" dataKey="weight_kg" stroke="#2B7073" strokeWidth={2} dot={{ r: 3 }} />
       </LineChart>
     </ResponsiveContainer>
   );

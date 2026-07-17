@@ -176,7 +176,7 @@ export function PlantillasClient({
             }}
             className={`shrink-0 rounded-full border px-4 py-1.5 text-sm ${
               t.id === selectedId
-                ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+                ? "border-brand-600 bg-brand-600 text-white"
                 : "border-zinc-300 dark:border-zinc-700"
             }`}
           >
@@ -211,7 +211,7 @@ export function PlantillasClient({
                 <button type="button" onClick={() => setEditingMeta(false)} className="rounded-lg border border-zinc-300 px-4 py-2 dark:border-zinc-700">
                   Cancelar
                 </button>
-                <button onClick={saveMeta} className="rounded-lg bg-zinc-900 px-4 py-2 text-white dark:bg-zinc-50 dark:text-zinc-900">
+                <button onClick={saveMeta} className="rounded-lg bg-accent-600 px-4 py-2 text-brand-950">
                   Guardar
                 </button>
               </div>

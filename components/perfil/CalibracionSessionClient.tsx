@@ -162,7 +162,7 @@ function GenericCalibrationFlow({
           <Link href="/calibracion" className="min-h-11 flex-1 rounded-lg border border-zinc-300 px-4 py-2 text-center text-sm font-medium dark:border-zinc-700">
             Volver a calibración
           </Link>
-          <Link href="/perfil/fuerza" className="min-h-11 flex-1 rounded-lg bg-zinc-900 px-4 py-2 text-center text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900">
+          <Link href="/perfil/fuerza" className="min-h-11 flex-1 rounded-lg bg-accent-600 px-4 py-2 text-center text-sm font-medium text-brand-950">
             Ver estándares
           </Link>
         </div>
@@ -251,7 +251,7 @@ function GenericCalibrationFlow({
             <button
               type="button"
               onClick={handleRegister}
-              className="min-h-11 rounded-lg bg-zinc-900 px-4 py-2 font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+              className="min-h-11 rounded-lg bg-accent-600 px-4 py-2 font-medium text-brand-950"
             >
               Registrar y continuar
             </button>

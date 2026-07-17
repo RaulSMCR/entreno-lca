@@ -23,7 +23,7 @@ export function TechniqueSheet({
         <button
           type="button"
           onClick={onAcknowledge}
-          className="mt-4 min-h-11 w-full rounded-lg bg-zinc-900 px-4 py-3 text-center font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+          className="mt-4 min-h-11 w-full rounded-lg bg-accent-600 px-4 py-3 text-center font-medium text-brand-950"
         >
           Entendido, empezar
         </button>

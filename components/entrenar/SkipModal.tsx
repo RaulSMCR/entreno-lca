@@ -81,7 +81,7 @@ export function SkipModal({
               onClick={() => setReason(r.value)}
               className={`min-h-11 rounded-lg border px-3 py-2 text-left ${
                 reason === r.value
-                  ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+                  ? "border-brand-600 bg-brand-600 text-white"
                   : "border-zinc-300 dark:border-zinc-700"
               }`}
             >

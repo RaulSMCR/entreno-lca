@@ -132,7 +132,7 @@ export function DistanceLoadRow({
         type="button"
         onClick={save}
         aria-label="Guardar serie"
-        className="min-h-11 rounded-lg bg-emerald-600 px-4 py-3 text-center text-lg font-semibold text-white"
+        className="min-h-11 rounded-lg bg-accent-600 px-4 py-3 text-center text-lg font-semibold text-brand-950"
       >
         ✓
       </button>

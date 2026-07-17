@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Entrenamiento ondulante post-LCA, con registro local-first.",
     start_url: "/",
     display: "standalone",
-    background_color: "#0f172a",
-    theme_color: "#0f172a",
+    background_color: "#F6EFDF",
+    theme_color: "#2B7073",
     icons: [
       {
         src: "/icons/icon-192x192.png",

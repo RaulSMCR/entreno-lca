@@ -7,12 +7,20 @@ import { pullRemote } from "@/lib/sync";
 import { getLSIInterpretation } from "@/lib/body-metrics";
 import { evaluateStrengthLevel, getStrengthStandard, STRENGTH_STANDARDS_DISCLAIMER, type StrengthLevel } from "@/lib/strength-standards";
 
-const LEVEL_COLOR: Record<StrengthLevel, string> = {
-  below_principiante: "bg-zinc-400",
-  principiante: "bg-blue-500",
-  intermedio: "bg-emerald-500",
-  avanzado: "bg-orange-500",
-  elite: "bg-amber-400",
+const LEVEL_BADGE_COLOR: Record<StrengthLevel, string> = {
+  below_principiante: "bg-neutral-600 text-white",
+  principiante: "bg-brand-200 text-brand-950",
+  intermedio: "bg-brand-600 text-white",
+  avanzado: "bg-accent-900 text-white",
+  elite: "bg-accent-600 text-brand-950",
+};
+
+const LEVEL_BAR_COLOR: Record<StrengthLevel, string> = {
+  below_principiante: "bg-neutral-600",
+  principiante: "bg-brand-300",
+  intermedio: "bg-brand-500",
+  avanzado: "bg-accent-800",
+  elite: "bg-accent-600",
 };
 
 const LEVEL_LABEL: Record<StrengthLevel, string> = {
@@ -115,7 +123,7 @@ export function FuerzaClient({ userId }: { userId: string }) {
                 <p className="text-xs text-zinc-400">Para dato preciso, hacer Día 1RM.</p>
               )}
               <div className="mt-2 flex items-center gap-2">
-                <span className={`rounded-full px-2 py-0.5 text-xs font-medium text-white ${LEVEL_COLOR[evaluation.currentLevel]}`}>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${LEVEL_BADGE_COLOR[evaluation.currentLevel]}`}>
                   {LEVEL_LABEL[evaluation.currentLevel]}
                 </span>
                 <span className="text-xs text-zinc-500 dark:text-zinc-400">{evaluation.message}</span>
@@ -123,7 +131,7 @@ export function FuerzaClient({ userId }: { userId: string }) {
               {evaluation.percentToNextLevel != null && (
                 <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
                   <div
-                    className={`h-full rounded-full ${LEVEL_COLOR[evaluation.nextLevel ?? evaluation.currentLevel]}`}
+                    className={`h-full rounded-full ${LEVEL_BAR_COLOR[evaluation.nextLevel ?? evaluation.currentLevel]}`}
                     style={{ width: `${evaluation.percentToNextLevel}%` }}
                   />
                 </div>

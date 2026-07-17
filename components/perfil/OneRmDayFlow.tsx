@@ -97,7 +97,7 @@ export function OneRmDayFlow({ userId, rehabPhase }: { userId: string; rehabPhas
           <Link href="/calibracion" className="min-h-11 flex-1 rounded-lg border border-zinc-300 px-4 py-2 text-center text-sm font-medium dark:border-zinc-700">
             Volver a calibración
           </Link>
-          <Link href="/perfil/fuerza" className="min-h-11 flex-1 rounded-lg bg-zinc-900 px-4 py-2 text-center text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900">
+          <Link href="/perfil/fuerza" className="min-h-11 flex-1 rounded-lg bg-accent-600 px-4 py-2 text-center text-sm font-medium text-brand-950">
             Ver estándares
           </Link>
         </div>
@@ -225,7 +225,7 @@ function OneRmExercise({
         <button
           type="button"
           onClick={finishWarmupStep}
-          className="mt-3 min-h-11 w-full rounded-lg bg-zinc-900 px-4 py-2 font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+          className="mt-3 min-h-11 w-full rounded-lg bg-accent-600 px-4 py-2 font-medium text-brand-950"
         >
           Hecho
         </button>
@@ -234,7 +234,7 @@ function OneRmExercise({
           <button
             type="button"
             onClick={() => logAttempt(true)}
-            className="min-h-11 flex-1 rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white"
+            className="min-h-11 flex-1 rounded-lg bg-accent-600 px-4 py-2 font-medium text-brand-950"
           >
             Logrado
           </button>

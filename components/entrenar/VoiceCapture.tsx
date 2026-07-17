@@ -168,7 +168,7 @@ export function VoiceCapture({
           className={`flex h-12 w-12 items-center justify-center rounded-full text-xl disabled:opacity-40 ${
             listening
               ? "bg-red-600 text-white"
-              : "bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
+              : "bg-accent-600 text-brand-950"
           }`}
         >
           🎤
