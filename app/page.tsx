@@ -12,10 +12,10 @@ export default function Home() {
       <main className="flex w-full max-w-md flex-col gap-6 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-            Entreno LCA
+            Cultiva
           </h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Fundaciones del proyecto: PWA instalable y local-first.
+            Mente sana en cuerpo sano.
           </p>
         </div>
 

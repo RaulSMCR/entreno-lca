@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Entreno LCA",
-    short_name: "Entreno LCA",
-    description: "Entrenamiento ondulante post-LCA, con registro local-first.",
+    name: "Cultiva",
+    short_name: "Cultiva",
+    description: "Mente sana en cuerpo sano.",
     start_url: "/",
     display: "standalone",
     background_color: "#F6EFDF",

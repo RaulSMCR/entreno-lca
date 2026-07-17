@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Entreno LCA",
-  description: "Entrenamiento ondulante post-LCA, con registro local-first.",
+  title: "Cultiva",
+  description: "Mente sana en cuerpo sano.",
   icons: {
     icon: [
       { url: "/icon.svg", sizes: "any", type: "image/svg+xml" },
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Entreno LCA",
+    title: "Cultiva",
   },
 };
 
